@@ -1,0 +1,144 @@
+%\documentclass[letterpaper,12pt]{aastex}
+\documentclass[preprint]{aastex}
+\usepackage[utf8]{inputenc}
+
+\usepackage{rotating}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage[cdot,mediumqspace,]{SIunits}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{url}
+\usepackage{authblk}
+\usepackage{placeins}
+\usepackage{float}
+\usepackage{natbib}
+\usepackage{multirow}
+\usepackage{amsmath}
+
+
+\title{Dynamics of the Stellar Streams to constrain Milky Way potential}
+%\author{Anita Bahmanyar}
+\affil{\small {Anita Bahmanyar}}
+\affil{\small {Student Number: 998909098}}
+\affil{\small {bahmanyar@astro.utoronto.ca}}
+\affil{\small {Supervised by: Prof. Jo Bovy}}
+\affil{\small {Department of Astronomy and Astrophysics, University of Toronto}}
+%\email{bahmanyar@astro.utoronto.ca}
+\date{}
+
+\usepackage{graphicx}
+
+%\renewcommand\thesubsection{\alph{subsection}}
+
+\begin{document}
+
+
+\begin{abstract}
+\end{abstract}
+\maketitle
+
+
+
+
+\section{Introduction}
+Streams are thought of as the remnants of the satellite galaxies and clusters that are tidally disrupted as they orbit their host galaxy. (ref Koposov2010) 
+Stars are stripped apart from the satellite onto orbits that are close to that of the progenitor, forming tidal streams (ref Bowden 2015). Understanding the physics of these streams help us study the structure of the host galaxy, in particular its potential. 
+
+There are a number of streams detected within our Milky Way galaxy. These would help us model the potential of our galaxy. The most famous example of such case is Saguttarius (Sgr) dwarf galaxy that has been discovered in 1994. The nucleus of the Sgr has survived for many orbits around the Galaxy, while its tidal tails have now been detected over a full $360^{\circ}$ on the sky and provides a strong constraint on the Galaxy’s halo (ref Fellhauer 2006) 
+
+Some of the detected streams in Milky Way galaxy are GD1 stream, Orphan stream and NGC5466 stream. These streams are derived from progenitors with lower mass than that of the Sgr stream so they will be easier to model and study. (ref Bowden 2015)
+
+Tidal streams can give us information about the large-scale structure of the Milky Way halo's density distribution and also its small-scale fluctuations. (ref Bovy 2014)
+
+
+Streams do not follow a single orbit which makes it hard to know which fitting of orbits is the best. We can fit more than one single orbit to the streams but it would be computationally expensive which has led to the assumption of fitting one single orbit to the streams. (ref Bovy 2014)
+
+There might exist some gaps in the observation data of the tidal streams which could be due to existence of dark matter sub halos, but it could also be due to the dynamics of the stars in the stream. (ref Bovy 2014)
+
+A tidal stream is generated when the stars are stripped apart from their progenitor in a satellite galaxy or star cluster.
+
+The best kind of streams to help us constrain the potential of Milky Way is a thin one that extends largely on the sky since it allows for accurate modelling if the stream orbit.
+
+GD-1 is a thin stream that is $63^{\circ}$ long on the sky. It is suggested that it is generated from a globular cluster. It is located at  (insert ~) $10 kpc$ from the Sun and (insert ~) $ 15 kpc$ from the Galactic center.(ref Koposov 2010)
+
+\section{Current Tools}
+I will be using \texttt{galpy} which is a Python package written for galactic dynamics calculations. galpy includes a vast number of functions including different galactic potentials and integrations methods. There are different types of potentials such as one, two and three dimensional potentials which the latter is the more realistic one. 
+\\ The units in galpy are not physical units. \texttt{galpy} uses natural units such that circular velocity is one at a cylindrical radius of one and height of zero. (cite galpy paper). So in order to convert to physical units, one needs to multiply the output by the actual values. for instance, one needs to multiply position by $8 \, kpc$ and the velocity by $220 \, kms^{-1}$ in a model where the Sun is assumed to be at $8 \, kpc $ from the Galactic centre and has the circular velocity of $220 \, kms^{-1}$.
+
+\subsection{Coordinate transformations}
+We need to convert  from the equatorial coordinates given by declination,$\delta$ and right ascension,$\alpha$ to the cartesian coordinates, x,y,z:
+
+\begin{eqnarray}
+x & = & \cos(\delta) \cos(\alpha) \\ \nonumber
+y & = & \cos(\delta) \sin(\alpha)  \\ \nonumber
+z & = & \sin(\alpha) \\ \nonumber 
+\end{eqnarray}
+
+we need to convert the stream coordinates to equatorial coordinate by the transformation below:
+
+\begin{equation}
+\begin{bmatrix}
+\cos(\phi_1) \cos(\phi_2)
+\\ \sin(\phi_1)\cos(\phi_2)
+\\ \sin(\phi_2)
+
+\end{bmatrix} = \begin{bmatrix}
+-0.4776303088 &  -0.1738432154 & 0.8611897727 \\ 
+ 0.510844589 & -0.8524449229 & 0.111245042 \\ 
+0.7147776536 & 0.493068392 & 0.4959603976 
+\end{bmatrix} \times  \begin{bmatrix}
+\cos(\alpha) \cos(\delta)
+\\ \sin(\alpha) \cos(\delta) 
+\\ \sin(\delta)
+\end{bmatrix}
+\end{equation}
+
+These coordinate transformation are all available in \texttt{galpy} in the utilities folder. (I can use phi12\_to\_lb and returning $\alpha$ and $\delta$ instead of what is being returned now. Then I can convert equatorial to xyz coordinates)
+
+We can convert the Cartesian coordinates to the cylindrical coordinates:
+
+\begin{eqnarray}
+R & = & \sqrt{x^2 + y^2} \\ \nonumber
+\phi & = & \arctan(\frac{y}{x})  \\ \nonumber
+z & = & z, \nonumber
+\end{eqnarray}
+
+For initializing the galpy orbit instance we need the initial coordinate of the stream  and its initial velocities in cylindrical coordinates. 
+We can also convert the velocities in Cartesian co-ordinates to the velocities in cylindrical coordinate by equation (number it):
+\begin{eqnarray}
+v_R & = & v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber 
+v_T & = & -v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber
+v_z & = &  v_z,  \nonumber
+\end{eqnarray}
+
+
+
+\section{Method}
+Likelihood of the correctness of the orbit of the star is given by:
+\begin{eqnarray}
+ln \mathcal{L} & = & - \frac{\chi^2}{2} = - \Sigma \frac{(x_{model,i}-x_{data,i})^2}{2\sigma_i^2} \\ \nonumber
+\mathcal{L}  & \propto & e^{\frac{-(\phi_1 - \tilde{\phi_1})^2}{2\sigma_1^2} - \frac{-(\phi_2 - \tilde{\phi_2})^2}{2\sigma_2^2}},  \nonumber
+\end{eqnarray }
+where $x_i$ is each of the observable and  $\sigma_i$ the associated error.
+
+
+We can get the potential from galpy using the code below:
+
+from   galpy  import potential
+p = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
+
+where q is the potential flattening and normalizations makes sure that the circular velocity is 1 at R=1 kpc.
+
+
+The data comes from tables 1-4 in (ref Kpsov 2010). the data is a combination of the Sloan Digital Sky survey (SDSS) and Calar Alto spectroscopy.  (ref Koposov 2010)
+
+
+\section{Plan}
+
+\section{Timeline}
+
+
+
+\end{document}
