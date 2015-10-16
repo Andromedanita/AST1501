@@ -3,10 +3,11 @@ import matplotlib.pylab as     plt
 from   galpy.util       import bovy_coords
 from   galpy            import potential
 from   galpy.orbit      import Orbit
+from   galpy            import util
 
 
 #----------------------------------------------------------
-#               coordinate transformation
+#               Coordinate Transformation
 #----------------------------------------------------------
 
 M      = np.zeros((3,3))
@@ -16,8 +17,21 @@ M[2,:] = [ 0.7147776536, 0.4930681392,0.4959603976]
 
 def phi12_to_radec(phi1,phi2,degree=False):
     """
-    Converting phi1 and phi2 to right ascension 
-    and declination
+    Parameters
+    ----------------------------------------------------
+        phi1   : stream coordinate
+        phi2   : stream coordinate
+        degree : if True, phi1 and phi2 are in degrees 
+                 will be converted to radians
+    
+    Functionality
+    ----------------------------------------------------
+        Using Appendix of Koposov 2010
+    
+    Return
+    ----------------------------------------------------
+        array[Declination,Right ascension]
+    
     """
     
     phiXYZ = np.array([np.cos(phi2)*np.cos(phi1),
@@ -64,15 +78,92 @@ def xyz_to_cyl(x,y,z):
     return np.array([R,z,phi])
 
 
+
+#----------------------------------------------------------
+#                  Velocity Transformation
+#----------------------------------------------------------
+
+def deriv(phi1,phi2,v_phi1,v_phi2,A,B,C,deg_type=False):
+    """
+    Derivative of A
+    """
+    
+    if deg_type == True: # convert the angles to radians for the sin and cos functions
+        phi1 *= np.pi/180.
+        phi2 *= np.pi/180.
+    
+    val1 = -A * ((np.sin(phi1) * np.cos(phi2) * v_phi1) + (
+                 (np.cos(phi1) * np.sin(phi2) * v_phi2) ))
+
+    val2 = B  * ((np.cos(phi1) * np.cos(phi2) * v_phi1) - (
+                 )(np.sin(phi1) * np.sin(phi2) * v_phi2) ))
+
+    val3 = C * np.cos(phi2) * v_phi2
+
+    val  = val1 + val2 + val3
+
+return val
+
+
+def orig_func(phi1,phi2,A,B,C,deg_type=False):
+    """
+    original function(before taking its derivative)
+    """
+    
+    val1 = A * np.cos(phi1) * np.cos(phi2)
+    val2 = B * np.sin(phi1) * np.cos(phi2)
+    val3 = C * np.sin(phi2)
+    val  = val1 + val2 + val3
+    
+    return val
+
+
+def vstream_to_veq(phi1,phi2,v_phi1,v_phi2,A1,A2,A3,A4,A5,A6,A7,A8,A9,deg_type=False):
+    """
+    Conversion of stream velocities to equatorial velocities
+    """
+    
+    vdec = deriv(phi1,phi2,v_phi1,v_phi2,A7,A8,A9,deg_type) / (
+          (np.sqrt((orig_func(phi1,phi2,A,B,C,deg_type)**2)- 1)))
+
+    
+    one       = orig_func(phi1,phi2,A4,A5,A6,deg_type)
+    one_prime = deriv(phi1,phi2,v_phi1,v_phi2,A4,A5,A6,deg_type=False)
+    two       = orig_func(phi1,phi2,A1,A2,A3,deg_type)
+    two_prime = deriv(phi1,phi2,v_phi1,v_phi2,A1,A2,A3,deg_type=False)
+    
+    num       = (one_prime * two) - (one * two_prime)
+    denom     = (1 + ((one/two)**2) ) * (two**2)
+    
+    vrad      = num/denom
+    
+    return np.array([vrad,vdec])
+
+
+def veq_to_vlb(vrad,vdec,ra,dec,deg_type):
+    """
+    Converting velocities in equatorial coordinates to Galactic coordinates (lb)
+    """
+    
+    vl,vb = util.bovy_coords.pmrapmdec_to_pmllpmbb(vrad,vdec,ra,dec,degree=deg_type,epoch=2000.0)
+    l,b   = util.bovy_coords.radec_to_lb(ra,dec,degree=deg_type,epoch=2000.0)
+    d     = 8.0 # kpc
+    
+    vx,vy,vz = util.bovy_coords.vrpmllpmbb_to_vxvyvz(vr,vl,vb,l,b,d,XYZ=False,degree=deg_type) # in km/s
+    return np.array([vx,vy,vz])
+
+
+
 def vxvyvz_to_vrvtvz(x,y,z,vx,vy,vz):
     """
-    Conversion of velocities in Cartesian coordinates 
+    Conversion of velocities in Cartesian coordinates
     to Cylindrical coordinates
     """
+    
     R,z,phi = xyz_to_cyl(x,y,z)
     vr      =  vx * np.cos(phi) + vy * np.sin(phi)
     vt      = -vx * np.sin(phi) + vy * np.cos(phi)
-
+    
     return np.array([vr,vt,vz])
 
 
@@ -161,12 +252,18 @@ def likelihood(x_model,x_data,x_err):
     val = np.exp((-((x_model-x_data)**2))/(2.*(x_err**2)))
     return val
 
+
 #----------------------------------------------------------
-#            Coordinate tranformation of GD-1 data
+#                     Code starts here
 #----------------------------------------------------------
-phi1,phi2,phi2_err = table2_kop2010()
-dec                = np.zeros(len(phi1))
-ra                 = np.zeros(len(phi1))
+'''
+Conversion of phi1 and phi2 coordinates to cylindrical
+which will be used later in initializing stream orbit
+'''
+
+phi1,phi2,phi2_err = table2_kop2010()    # getting Koposov values
+dec                = np.zeros(len(phi1)) # initializing array
+ra                 = np.zeros(len(phi1)) # ...
 
 # converting phi1 and phi2 to RA and DEC
 for i in range(len(phi1)):
@@ -178,13 +275,10 @@ x,y,z       = radec_to_xyz(dec,ra,degree=False)
 # converting xyz cartesian coordinates to cylindrical coordinates
 R,z_cyl,phi = xyz_to_cyl(x,y,z)
 
-# converting cartesian velocities to cylindrical velocities
-#vR,vt,vz    = vxvyvz_to_vrvtvz(x,y,z,vx,vy,vz)
+'''
+Initializing and integrating orbit
+'''
 
-
-#----------------------------------------------------------
-#    Using galpy to initialize orbit and integrate it
-#----------------------------------------------------------
 p    = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
 vR   = p.Rforce(R,z_cyl,phi,t=0)
 
@@ -201,7 +295,15 @@ o.integrate(time,p)
 plt.ion()
 o.plot()
 plt.title("Orbital Integration for {0} timesteps".format(ts))
-o.plot3d()
+#o.plot3d()
+
+
+
+
+
+
+
+
 
 
 
