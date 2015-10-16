@@ -10,6 +10,8 @@ from   galpy            import util
 #               Coordinate Transformation
 #----------------------------------------------------------
 
+distance = 8.0 # kpc, distance to the stream
+
 M      = np.zeros((3,3))
 M[0,:] = [-0.4776303088,-0.1738432154,0.8611897727]
 M[1,:] = [ 0.510844589 ,-0.8524449229,0.111245042 ]
@@ -147,7 +149,6 @@ def deriv(phi1,phi2,v_phi1,v_phi2,A,B,C,deg_type=False):
     return val
 
 
-###################
 
 def orig_func(phi1,phi2,A,B,C,deg_type=False):
     
@@ -171,7 +172,6 @@ def orig_func(phi1,phi2,A,B,C,deg_type=False):
     return val
 
 
-###################
 
 
 def vstream_to_veq(phi1,phi2,v_phi1,v_phi2,A1,A2,A3,A4,A5,A6,A7,A8,A9,deg_type=False):
@@ -219,7 +219,7 @@ def vstream_to_veq(phi1,phi2,v_phi1,v_phi2,A1,A2,A3,A4,A5,A6,A7,A8,A9,deg_type=F
 
 
 
-def veq_to_vlb(vrad,vdec,ra,dec,deg_type):
+def veq_to_vxyz(vrad,vdec,ra,dec,deg_type):
 
     """
     Parameters
@@ -249,7 +249,7 @@ def veq_to_vlb(vrad,vdec,ra,dec,deg_type):
     
     vl,vb = util.bovy_coords.pmrapmdec_to_pmllpmbb(vrad,vdec,ra,dec,degree=deg_type,epoch=2000.0)
     l,b   = util.bovy_coords.radec_to_lb(ra,dec,degree=deg_type,epoch=2000.0)
-    d     = 8.0 # kpc
+    d     = distance
     
     vx,vy,vz = util.bovy_coords.vrpmllpmbb_to_vxvyvz(vr,vl,vb,l,b,d,XYZ=False,degree=deg_type) # in km/s
     return np.array([vx,vy,vz])
@@ -379,13 +379,35 @@ def likelihood(x_model,x_data,x_err):
 #----------------------------------------------------------
 #                     Code starts here
 #----------------------------------------------------------
-'''
-Conversion of phi1 and phi2 coordinates to cylindrical
-which will be used later in initializing stream orbit
-'''
 
-distance = 8.0 # kpc
 
+# initial positions in cartesian coordinates in natural units
+xi,yi,zi = np.array([-3.41,13.00,9.58])/distance   # kpc
+
+# initial velocities in cartesian coordinates in natural units
+vxi,vyi,vzi = np.array([-200.4,162.6,13.9])/220. # km/s
+
+
+# initial coordinates in cylindrical coordinates
+Ri,zcyli,phii = xyz_to_cyl(xi,yi,zi)
+
+# initial velocities in cylindrical coordinates
+vri,vti,vzcyli = vxvyvz_to_vrvtvz(xi,yi,zi,vxi,vyi,vzi)
+
+# calling the potential
+p    = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
+
+
+# initiating the orbit
+ts   = 1000 # number of timesteps
+time = np.linspace(0.,1e1,ts)
+o    = Orbit(vxvv=[Ri,vri,vti,zcyli,vzcyli,phii])#,ro=8.,vo=220.)
+o.integrate(time,p)
+plt.ion()
+o.plot()
+
+
+'''
 phi1,phi2,phi2_err = table2_kop2010()    # getting Koposov values
 dec                = np.zeros(len(phi1)) # initializing array
 ra                 = np.zeros(len(phi1)) # ...
@@ -401,26 +423,7 @@ x,y,z       = radec_to_xyz(dec,ra,distance,degree=False)
 R,z_cyl,phi = xyz_to_cyl(x,y,z)
 
 '''
-Initializing and integrating orbit
-'''
 
-p    = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
-vR   = p.Rforce(R,z_cyl,phi,t=0)
-
-ts   = 1000 # number of timesteps
-time = np.linspace(0.,1e2,ts)
-o    = Orbit(vxvv=[1.,0.1,1.1,0.,0.1,0.],ro=8.,vo=220.) #initial condition of the orbit
-#o    = Orbit(vxvv=[R,vR,vt,z_cyl,vz,phi],ro=8.,vo=220.)
-o.integrate(time,p)
-
-
-#----------------------------------------------------------
-#                         Plotting
-#----------------------------------------------------------
-plt.ion()
-o.plot()
-plt.title("Orbital Integration for {0} timesteps".format(ts))
-#o.plot3d()
 
 
 
