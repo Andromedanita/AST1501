@@ -139,36 +139,39 @@ def deriv(phi1,phi2,v_phi1,v_phi2,A,B,C,deg_type=False):
                  (np.cos(phi1) * np.sin(phi2) * v_phi2) ))
 
     val2 = B  * ((np.cos(phi1) * np.cos(phi2) * v_phi1) - (
-                 )(np.sin(phi1) * np.sin(phi2) * v_phi2) ))
+                 (np.sin(phi1) * np.sin(phi2) * v_phi2)))
 
-    val3 = C * np.cos(phi2) * v_phi2
+    val3 = C  * np.cos(phi2) * v_phi2
 
     val  = val1 + val2 + val3
     return val
 
 
+###################
+
 def orig_func(phi1,phi2,A,B,C,deg_type=False):
-   
-   """
+    
+    """
     Parameters
     ----------------------------------------------------
-       phi1, phi2 : stream coordinates
-       A,B,C      : Matrix M row values which are
-                    the coefficients of the dot
-                    product of the M.C matrices
-    
+        phi1, phi2 : stream coordinates
+        A,B,C      : Matrix M row values which are
+                     the coefficients of the dot
+                     product of the M.C matrices
+                    
     Return
     ----------------------------------------------------
-       Each row of matrix A = M * C
+        Each row of matrix A = M * C
     """
-
-
+    
     val1 = A * np.cos(phi1) * np.cos(phi2)
     val2 = B * np.sin(phi1) * np.cos(phi2)
     val3 = C * np.sin(phi2)
     val  = val1 + val2 + val3
-    
     return val
+
+
+###################
 
 
 def vstream_to_veq(phi1,phi2,v_phi1,v_phi2,A1,A2,A3,A4,A5,A6,A7,A8,A9,deg_type=False):
@@ -381,6 +384,8 @@ Conversion of phi1 and phi2 coordinates to cylindrical
 which will be used later in initializing stream orbit
 '''
 
+distance = 8.0 # kpc
+
 phi1,phi2,phi2_err = table2_kop2010()    # getting Koposov values
 dec                = np.zeros(len(phi1)) # initializing array
 ra                 = np.zeros(len(phi1)) # ...
@@ -390,7 +395,7 @@ for i in range(len(phi1)):
     dec[i],ra[i] = phi12_to_radec(phi1[i],phi2[i],degree=False)
 
 # converting RA and DEC to xyz cartesian coordinates
-x,y,z       = radec_to_xyz(dec,ra,degree=False)
+x,y,z       = radec_to_xyz(dec,ra,distance,degree=False)
 
 # converting xyz cartesian coordinates to cylindrical coordinates
 R,z_cyl,phi = xyz_to_cyl(x,y,z)
