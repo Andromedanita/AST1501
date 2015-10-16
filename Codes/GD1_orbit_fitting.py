@@ -259,6 +259,27 @@ def vxvyvz_to_vrvtvz(x,y,z,vx,vy,vz):
     to Cylindrical coordinates
     """
     
+    """
+    Parameters
+    ----------------------------------------------------
+        x,y,z : coordinate of the stream in cartesian 
+                coordinates
+                
+        vx, vy, vz : velocity of the stream in cartesian
+                     coordinates
+                     
+
+    Functionality
+    ----------------------------------------------------
+        Converting velocities in cartesian coordinates 
+        to velocities in cylindrical coordinates
+        
+    Return
+    ----------------------------------------------------
+        array[vr,vt,vz]
+    """
+
+    
     R,z,phi = xyz_to_cyl(x,y,z)
     vr      =  vx * np.cos(phi) + vy * np.sin(phi)
     vt      = -vx * np.sin(phi) + vy * np.cos(phi)
