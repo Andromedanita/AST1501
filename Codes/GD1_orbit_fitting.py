@@ -16,17 +16,19 @@ M[1,:] = [ 0.510844589 ,-0.8524449229,0.111245042 ]
 M[2,:] = [ 0.7147776536, 0.4930681392,0.4959603976]
 
 def phi12_to_radec(phi1,phi2,degree=False):
+    
     """
     Parameters
     ----------------------------------------------------
         phi1   : stream coordinate
         phi2   : stream coordinate
         degree : if True, phi1 and phi2 are in degrees 
-                 will be converted to radians
+                 and will be converted to radians
     
     Functionality
     ----------------------------------------------------
-        Using Appendix of Koposov 2010
+        Using Appendix of Koposov 2010 A = M^-1.C,
+        where inverse of M is the same as M transpose
     
     Return
     ----------------------------------------------------
@@ -34,12 +36,13 @@ def phi12_to_radec(phi1,phi2,degree=False):
     
     """
     
-    phiXYZ = np.array([np.cos(phi2)*np.cos(phi1),
-                          np.cos(phi2)*np.sin(phi1),
-                          np.sin(phi2)])
-    eqXYZ  = np.dot(M.T,phiXYZ)
-    dec    = np.arcsin(eqXYZ[2])
-    ra     = np.arctan2(eqXYZ[1],eqXYZ[0])
+    C = np.array([np.cos(phi2)*np.cos(phi1),
+                  np.cos(phi2)*np.sin(phi1),
+                  np.sin(phi2)])
+                  
+    MC_dot = np.dot(M.T,C)
+    dec    = np.arcsin(MC_dot[2])
+    ra     = np.arctan2(MC_dot[1],MC_dot[0])
     
     if ra < 0.:
         ra += 2.*np.pi
@@ -50,28 +53,55 @@ def phi12_to_radec(phi1,phi2,degree=False):
     return np.array([dec,ra])
 
 
-def radec_to_xyz(dec,ra,degree=False):
+def radec_to_xyz(dec,ra,d,degree=False):
+    
     """
-    Converting right ascension and declination to 
-    cartesian coordinates
+    Parameters
+    ----------------------------------------------------
+        dec    : stream coordinate
+        ra     : stream coordinate
+        d      : distance to the stream
+        degree : if True, RA and DEC are in degrees and
+                 will be converted to radians
+        
+    Functionality
+    ----------------------------------------------------
+        Using spherical coordinate transformation
+        
+    Return
+    ----------------------------------------------------
+        array[x,y,z]
     """
     
     if degree == True:
         dec *= np.pi/180.
         ra  *= np.pi/180.
     
-    x = np.cos(dec) * np.cos(ra)
-    y = np.cos(dec) * np.sin(ra)
-    z = np.sin(ra)
+    x = d * np.cos(dec) * np.cos(ra)
+    y = d * np.cos(dec) * np.sin(ra)
+    z = d * np.sin(ra)
 
     return np.array([x,y,z])
 
 
 def xyz_to_cyl(x,y,z):
+    
     """
-    Conversion of Cartesian coordinates to 
-    cylindrical coordinates
+    Parameters
+    ----------------------------------------------------
+        x,y,z : Cartesian coordinates
+        
+        
+    Functionality
+    ----------------------------------------------------
+        Using equation for conversion of cartesian 
+        coordinates to cylindrical
+        
+    Return
+    ----------------------------------------------------
+        array[R,z,phi]
     """
+
     
     R   = np.sqrt((x**2) + (y**2))
     phi = np.arctan(y/x)
@@ -84,11 +114,24 @@ def xyz_to_cyl(x,y,z):
 #----------------------------------------------------------
 
 def deriv(phi1,phi2,v_phi1,v_phi2,A,B,C,deg_type=False):
+  
     """
-    Derivative of A
+    Parameters
+    ----------------------------------------------------
+        phi1, phi2     : stream coordinates
+        v_phi1, v_phi2 : proper motion in stream 
+                         coordinates
+        A,B,C          : Matrix M row values which are 
+                         the coefficients of the dot 
+                         product of the M.C matrices
+        
+    Return
+    ----------------------------------------------------
+        Derivative of each row of matrix M * C
     """
-    
-    if deg_type == True: # convert the angles to radians for the sin and cos functions
+
+# convert angles to radians for the sin and cos functions
+    if deg_type == True:
         phi1 *= np.pi/180.
         phi2 *= np.pi/180.
     
@@ -101,15 +144,25 @@ def deriv(phi1,phi2,v_phi1,v_phi2,A,B,C,deg_type=False):
     val3 = C * np.cos(phi2) * v_phi2
 
     val  = val1 + val2 + val3
-
-return val
+    return val
 
 
 def orig_func(phi1,phi2,A,B,C,deg_type=False):
-    """
-    original function(before taking its derivative)
-    """
+   
+   """
+    Parameters
+    ----------------------------------------------------
+       phi1, phi2 : stream coordinates
+       A,B,C      : Matrix M row values which are
+                    the coefficients of the dot
+                    product of the M.C matrices
     
+    Return
+    ----------------------------------------------------
+       Each row of matrix A = M * C
+    """
+
+
     val1 = A * np.cos(phi1) * np.cos(phi2)
     val2 = B * np.sin(phi1) * np.cos(phi2)
     val3 = C * np.sin(phi2)
@@ -119,9 +172,31 @@ def orig_func(phi1,phi2,A,B,C,deg_type=False):
 
 
 def vstream_to_veq(phi1,phi2,v_phi1,v_phi2,A1,A2,A3,A4,A5,A6,A7,A8,A9,deg_type=False):
+    
     """
-    Conversion of stream velocities to equatorial velocities
+    Parameters
+    ----------------------------------------------------
+        phi1,phi2      : stream coordinates
+        
+        v_phi1, v_phi2 : proper motion in stream
+                         coordinates
+                         
+        A1,A2,A3,A4,A5,A6,A7,A8,A9 : matrix M values
+        
+        degree         : if True, RA and DEC are in 
+                         degrees and will be converted
+                         to radians
+        
+    Functionality
+    ----------------------------------------------------
+        Converts proper motions in stream coordinate to  
+        velocities in equatorial coordinates 
+        
+    Return
+    ----------------------------------------------------
+        array[v_RA,v_DEC]
     """
+
     
     vdec = deriv(phi1,phi2,v_phi1,v_phi2,A7,A8,A9,deg_type) / (
           (np.sqrt((orig_func(phi1,phi2,A,B,C,deg_type)**2)- 1)))
@@ -140,9 +215,33 @@ def vstream_to_veq(phi1,phi2,v_phi1,v_phi2,A1,A2,A3,A4,A5,A6,A7,A8,A9,deg_type=F
     return np.array([vrad,vdec])
 
 
+
 def veq_to_vlb(vrad,vdec,ra,dec,deg_type):
+
     """
-    Converting velocities in equatorial coordinates to Galactic coordinates (lb)
+    Parameters
+    ----------------------------------------------------
+        vrad : velocity in RA
+        vdex : velocity in DEC
+        
+        ra   : Right Ascension
+        dec  : Declination
+        
+        degree         : if True, RA and DEC are in
+        degrees and will be converted
+        to radians
+        
+    Functionality
+    ----------------------------------------------------
+        Converts velocitis in equatorial coordinate to
+        velocities in Galactic coordinates (l,b) -->
+        Convert velocities in Galactic coordinates to 
+        velocities in cartesian coordinates using galpy
+        util funcitons
+        
+    Return
+    ----------------------------------------------------
+        array[vx,vy,vz]
     """
     
     vl,vb = util.bovy_coords.pmrapmdec_to_pmllpmbb(vrad,vdec,ra,dec,degree=deg_type,epoch=2000.0)
