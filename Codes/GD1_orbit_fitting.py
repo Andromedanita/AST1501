@@ -454,7 +454,7 @@ time = np.linspace(0.,1e1,ts)
 o    = Orbit(vxvv=[Ri,vri,vti,zcyli,vzcyli,phii])
 o.integrate(time,p)
 plt.ion()
-o.plot()
+
 
 
 ############  testing ##################
@@ -474,7 +474,6 @@ x,y,z       = radec_to_xyz(dec,ra,distance,degree=False)
 
 # converting xyz cartesian coordinates to cylindrical coordinates
 R,z_cyl,phi = xyz_to_cyl(x,y,z)
-plt.plot(R/distance,z_cyl/distance,'ro')
 
 
 
@@ -484,6 +483,16 @@ Rvals   = o.R(time)
 zvals   = o.z(time)
 phivals = o.phi(time)
 
+
+plt.figure(1)
+#o.plot()
+plt.plot(Rvals,zvals,linewidth=2,color='blue')
+plt.plot(R/distance,z_cyl/distance,'ro')
+plt.title("in cylindrical coordinate")
+
+
+
+
 xf,yf,zf = cyl_to_xyz(Rvals,zvals,phivals)
 
 func        = np.vectorize(xyz_to_radex)
@@ -491,8 +500,10 @@ raf,decf,df = func(xf,yf,zf)
 
 phi1f,phi2f = radec_to_phi12(raf,decf,df)
 
-plt.plot(phi1f,phi2f,'bo')
+plt.figure(2)
+plt.plot(phi1f,phi2f,linewidth=2,color='blue')
 plt.plot(phi1,phi2,'ro')
+plt.title("in stream coordinate")
 
 
 '''
@@ -508,9 +519,18 @@ func         = np.vectorize(xyz_to_radex)
 raf,decf,df  = func(xf,yf,zf)
 
 phi1f,phi2f  = radec_to_phi12(raf,decf,df)
-
-
 '''
+
+# likelihood testing
+
+phi1f = phi1f * 180./np.pi
+phi2f = phi2f * 180./np.pi
+
+phi1_err = np.random.random(len(phi1))
+
+l = likelihood(phi1f,phi1,phi1_err,phi2f,phi2,phi2_err)
+
+
 
 
 
