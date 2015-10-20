@@ -10,7 +10,7 @@ from   galpy            import util
 #               Coordinate Transformation
 #----------------------------------------------------------
 
-distance = 8.0 # kpc, distance to the stream
+distance = 8.5 # kpc, distance to the stream
 
 M      = np.zeros((3,3))
 M[0,:] = [-0.4776303088,-0.1738432154,0.8611897727]
@@ -35,8 +35,14 @@ def phi12_to_radec(phi1,phi2,degree=False):
     Return
     ----------------------------------------------------
         array[Declination,Right ascension]
+        in the same unit as the ra and dec input
     
     """
+    
+    if degree == True:
+        phi1 *= np.pi/180.
+        phi2 *= np.pi/180.
+
     
     C = np.array([np.cos(phi2)*np.cos(phi1),
                   np.cos(phi2)*np.sin(phi1),
@@ -48,11 +54,13 @@ def phi12_to_radec(phi1,phi2,degree=False):
     
     if ra < 0.:
         ra += 2.*np.pi
-    
-    if degree == True:
-        dec *= 180./np.pi
-        ra  *= 180./np.pi
-    return np.array([dec,ra])
+
+    return ra,dec
+
+
+def radec_to_lb(ra,dec):
+    val = bovy_coords.radec_to_lb(ra,dec)
+    return val
 
 
 def radec_to_xyz(dec,ra,d,degree=False):
@@ -81,7 +89,7 @@ def radec_to_xyz(dec,ra,d,degree=False):
     
     x = d * np.cos(dec) * np.cos(ra)
     y = d * np.cos(dec) * np.sin(ra)
-    z = d * np.sin(ra)
+    z = d * np.sin(dec)
 
     return np.array([x,y,z])
 
@@ -108,6 +116,42 @@ def xyz_to_cyl(x,y,z):
     R   = np.sqrt((x**2) + (y**2))
     phi = np.arctan(y/x)
     return np.array([R,z,phi])
+
+
+#----------------------------------------------------------
+#     Coordinate Transformation (cylindrical to stream)
+#----------------------------------------------------------
+
+def cyl_to_xyz(R,z,phi):
+
+    x = R * np.cos(phi)
+    y = R * np.sin(phi)
+
+    return np.array([x,y,z])
+
+
+def xyz_to_radex(x,y,z):
+
+    d   = np.sqrt((x**2) + (y**2) + (z**2))
+    ra  = np.arctan(y/x)
+    dec = np.arcsin(z/d)
+    
+    return ra,dec,d
+
+
+def radec_to_phi12(ra,dec,d):
+    
+    C = np.array([np.cos(ra)*np.cos(dec),
+                  np.sin(ra)*np.cos(dec),
+                  np.sin(dec)])
+    
+    MC_dot = np.dot(M,C)
+    
+    phi1 = np.arctan2(MC_dot[1],MC_dot[0])
+    phi2 = np.arcsin(MC_dot[2])
+    
+    # returning phi1 and phi2 in radian
+    return phi1,phi2
 
 
 
@@ -367,13 +411,15 @@ def table4_kop2010():
 #                  Likelihood Function
 #----------------------------------------------------------
 
-def likelihood(x_model,x_data,x_err):
+def likelihood(x_model,x_data,x_err,y_model,y_data,y_err):
     """
     Returning log likelihood of the data
     """
     
-    val = np.exp((-((x_model-x_data)**2))/(2.*(x_err**2)))
-    return val
+    val_x = np.exp((-((x_model-x_data)**2))/(2.*(x_err**2)))
+    val_y = np.exp((-((y_model-y_data)**2))/(2.*(y_err**2)))
+    L     = val_x * val_y
+    return L
 
 
 #----------------------------------------------------------
@@ -397,32 +443,32 @@ vri,vti,vzcyli = vxvyvz_to_vrvtvz(xi,yi,zi,vxi,vyi,vzi)
 # calling the potential
 p    = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
 
-
 # initiating the orbit
 ts   = 1000 # number of timesteps
 time = np.linspace(0.,1e1,ts)
-o    = Orbit(vxvv=[Ri,vri,vti,zcyli,vzcyli,phii])#,ro=8.,vo=220.)
+o    = Orbit(vxvv=[Ri,vri,vti,zcyli,vzcyli,phii])
 o.integrate(time,p)
 plt.ion()
 o.plot()
 
 
-'''
+############  testing ##################
+
 phi1,phi2,phi2_err = table2_kop2010()    # getting Koposov values
 dec                = np.zeros(len(phi1)) # initializing array
 ra                 = np.zeros(len(phi1)) # ...
 
 # converting phi1 and phi2 to RA and DEC
 for i in range(len(phi1)):
-    dec[i],ra[i] = phi12_to_radec(phi1[i],phi2[i],degree=False)
+    ra[i],dec[i] = phi12_to_radec(phi1[i],phi2[i],degree=True)
 
 # converting RA and DEC to xyz cartesian coordinates
 x,y,z       = radec_to_xyz(dec,ra,distance,degree=False)
 
 # converting xyz cartesian coordinates to cylindrical coordinates
 R,z_cyl,phi = xyz_to_cyl(x,y,z)
+plt.plot(R/distance,z_cyl/distance,'ro')
 
-'''
 
 
 
