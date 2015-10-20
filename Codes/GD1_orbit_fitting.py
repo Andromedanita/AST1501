@@ -54,6 +54,8 @@ def phi12_to_radec(phi1,phi2,degree=False):
     
     if ra < 0.:
         ra += 2.*np.pi
+    
+    ra += np.pi
 
     return ra,dec
 
@@ -135,6 +137,9 @@ def xyz_to_radex(x,y,z):
     d   = np.sqrt((x**2) + (y**2) + (z**2))
     ra  = np.arctan(y/x)
     dec = np.arcsin(z/d)
+    
+    if ra < 0.:
+        ra += 2.*np.pi
     
     return ra,dec,d
 
@@ -454,6 +459,8 @@ o.plot()
 
 ############  testing ##################
 
+# in R and z coordinates
+
 phi1,phi2,phi2_err = table2_kop2010()    # getting Koposov values
 dec                = np.zeros(len(phi1)) # initializing array
 ra                 = np.zeros(len(phi1)) # ...
@@ -469,6 +476,41 @@ x,y,z       = radec_to_xyz(dec,ra,distance,degree=False)
 R,z_cyl,phi = xyz_to_cyl(x,y,z)
 plt.plot(R/distance,z_cyl/distance,'ro')
 
+
+
+# in phi1 and phi2 coordinates
+
+Rvals   = o.R(time)
+zvals   = o.z(time)
+phivals = o.phi(time)
+
+xf,yf,zf = cyl_to_xyz(Rvals,zvals,phivals)
+
+func        = np.vectorize(xyz_to_radex)
+raf,decf,df = func(xf,yf,zf)
+
+phi1f,phi2f = radec_to_phi12(raf,decf,df)
+
+plt.plot(phi1f,phi2f,'bo')
+plt.plot(phi1,phi2,'ro')
+
+
+'''
+# testing to compare coordinate transformation from phi12 to cylindrical 
+# and vice versa to see if they match. They only match if I add 180 degrees to
+# the right ascension in phi12_to_radec function :(
+
+xf,yf,zf     = cyl_to_xyz(R,z_cyl,phi)
+
+#raf,decf,df = xyz_to_radex(xf,yf,zf)
+
+func         = np.vectorize(xyz_to_radex)
+raf,decf,df  = func(xf,yf,zf)
+
+phi1f,phi2f  = radec_to_phi12(raf,decf,df)
+
+
+'''
 
 
 
