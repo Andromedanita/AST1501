@@ -55,7 +55,7 @@ def phi12_to_radec(phi1,phi2,degree=False):
     if ra < 0.:
         ra += 2.*np.pi
     
-    ra += np.pi
+    #ra += np.pi
 
     return ra,dec
 
@@ -89,7 +89,7 @@ def radec_to_xyz(dec,ra,d,degree=False):
         dec *= np.pi/180.
         ra  *= np.pi/180.
     
-    x = d * np.cos(dec) * np.cos(ra)
+    x = distance - d * np.cos(dec) * np.cos(ra)
     y = d * np.cos(dec) * np.sin(ra)
     z = d * np.sin(dec)
 
@@ -116,7 +116,7 @@ def xyz_to_cyl(x,y,z):
 
     
     R   = np.sqrt((x**2) + (y**2))
-    phi = np.arctan(y/x)
+    phi = np.arctan2(y,x)
     return np.array([R,z,phi])
 
 
@@ -456,7 +456,6 @@ o.integrate(time,p)
 plt.ion()
 
 
-
 ############  testing ##################
 
 # in R and z coordinates
@@ -476,7 +475,6 @@ x,y,z       = radec_to_xyz(dec,ra,distance,degree=False)
 R,z_cyl,phi = xyz_to_cyl(x,y,z)
 
 
-
 # in phi1 and phi2 coordinates
 
 Rvals   = o.R(time)
@@ -492,19 +490,19 @@ plt.title("in cylindrical coordinate")
 
 
 
-
+'''
 xf,yf,zf = cyl_to_xyz(Rvals,zvals,phivals)
 
 func        = np.vectorize(xyz_to_radex)
 raf,decf,df = func(xf,yf,zf)
 
-phi1f,phi2f = radec_to_phi12(raf,decf,df)
+phi1f,phi2f = radec_to_phi12(decf,raf,df)
 
 plt.figure(2)
 plt.plot(phi1f,phi2f,linewidth=2,color='blue')
 plt.plot(phi1,phi2,'ro')
 plt.title("in stream coordinate")
-
+'''
 
 '''
 # testing to compare coordinate transformation from phi12 to cylindrical 
@@ -520,7 +518,7 @@ raf,decf,df  = func(xf,yf,zf)
 
 phi1f,phi2f  = radec_to_phi12(raf,decf,df)
 '''
-
+'''
 # likelihood testing
 
 phi1f = phi1f * 180./np.pi
@@ -530,7 +528,7 @@ phi1_err = np.random.random(len(phi1))
 
 l = likelihood(phi1f,phi1,phi1_err,phi2f,phi2,phi2_err)
 
-
+'''
 
 
 
