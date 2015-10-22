@@ -43,17 +43,17 @@
 
 
 \section{Introduction}
-Streams are thought of as the remnants of the satellite galaxies and clusters that are tidally disrupted as they orbit their host galaxy. (ref Koposov2010) 
-Stars are stripped apart from the satellite onto orbits that are close to that of the progenitor, forming tidal streams (ref Bowden 2015). Understanding the physics of these streams help us study the structure of the host galaxy, in particular its potential. 
+Satellite galaxies and clusters get tidally disrupted by their host galaxy as they orbit around it. (ref koposov) The orbit of the tidally disrupted stars is close to that of their progenitor (ref Bowden 2015)
+Understanding the physics of these streams help us study the structure of the host galaxy and in particular its potential. Tidal streams can also give us information about the large-scale structure of the Milky Way halo's density distribution and also its small-scale fluctuations. (ref Bovy 2014)
 
-There are a number of streams detected within our Milky Way galaxy. These would help us model the potential of our galaxy. The most famous example of such case is Saguttarius (Sgr) dwarf galaxy that has been discovered in 1994. The nucleus of the Sgr has survived for many orbits around the Galaxy, while its tidal tails have now been detected over a full $360^{\circ}$ on the sky and provides a strong constraint on the Galaxy’s halo (ref Fellhauer 2006) 
+There are a number of streams detected within our Milky Way galaxy which could help us mode the potential of the Milky Way. The most famous example of such case is Saguttarius (Sgr) dwarf galaxy that has been discovered in 1994. The nucleus of the Sgr has survived for many orbits around the Galaxy, while its tidal tails have now been detected over a full $360^{\circ}$ on the sky and provides a strong constraint on the Galaxy’s halo (ref Fellhauer 2006) 
+Some of the other detected streams in Milky Way galaxy are GD1 stream, Orphan stream and NGC5466 stream. 
+These streams are derived from progenitors with lower mass than that of the Sgr stream so they will be easier to model and study. (ref Bowden 2015)
+The difficulty in modelling the streams is that they do not follow a single orbit and this makes it hard to know which fitting of orbits is the best. We can fit more than one single orbit to the streams but it would be computationally expensive which has led to the assumption of fitting one single orbit to the streams. (ref Bovy 2014)
 
-Some of the detected streams in Milky Way galaxy are GD1 stream, Orphan stream and NGC5466 stream. These streams are derived from progenitors with lower mass than that of the Sgr stream so they will be easier to model and study. (ref Bowden 2015)
-
-Tidal streams can give us information about the large-scale structure of the Milky Way halo's density distribution and also its small-scale fluctuations. (ref Bovy 2014)
 
 
-Streams do not follow a single orbit which makes it hard to know which fitting of orbits is the best. We can fit more than one single orbit to the streams but it would be computationally expensive which has led to the assumption of fitting one single orbit to the streams. (ref Bovy 2014)
+
 
 There might exist some gaps in the observation data of the tidal streams which could be due to existence of dark matter sub halos, but it could also be due to the dynamics of the stars in the stream. (ref Bovy 2014)
 
@@ -116,14 +116,18 @@ v_z & = &  v_z,  \nonumber
 
 
 \section{Method}
-Likelihood of the correctness of the orbit of the star is given by:
+\subsection{Likelihood}
+We can calculate the likelihood as the probability of getting a y-value at an x-value given a model. In our case, we will consider likelihood as the probability of getting $\phi_2$ at a $\phi_1$ given a model at a given time. In other words, $\mathcal{L} \propto P(\phi_2 \, at \, \phi_1 | \mathrm{model \, at \, time \, t})$.
+The likelihood can also be written as:
+
 \begin{eqnarray}
-ln \mathcal{L} & = & - \frac{\chi^2}{2} = - \Sigma \frac{(x_{model,i}-x_{data,i})^2}{2\sigma_i^2} \\ \nonumber
-\mathcal{L}  & \propto & e^{\frac{-(\phi_1 - \tilde{\phi_1})^2}{2\sigma_1^2} - \frac{-(\phi_2 - \tilde{\phi_2})^2}{2\sigma_2^2}},  \nonumber
+ln \mathcal{L} & = & - \frac{\chi^2}{2} =  \Sigma \frac{(x_{model,i}-x_{data,i})^2}{2\sigma_i^2} \\ \nonumber
+\mathcal{L}  & \propto & \int \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} - \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}} dt  \\ \nonumber
+\mathcal{L}  & \propto & \sum_i \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} - \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}},  \nonumber
 \end{eqnarray }
-where $x_i$ is each of the observable and  $\sigma_i$ the associated error.
+where $i$ represents each of the data points and $\sigma_i$ is the associated error. We take the sum since we do not have infinite time steps. Also, we need to integrate over time since we do not know the time the data has been taken and we only take an average of it.
 
-
+\subsection{Brief look at galpy}
 We can get the potential from galpy using the code below:
 
 from   galpy  import potential
