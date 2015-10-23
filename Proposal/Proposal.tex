@@ -57,11 +57,30 @@ There might exist some gaps in the observation data of the tidal streams which c
 
 
 \section{Current Tools}
-I will be using \texttt{galpy} which is a Python package written for galactic dynamics calculations. galpy includes a vast number of functions including different galactic potentials and integrations methods. There are different types of potentials such as one, two and three dimensional potentials which the latter is the more realistic one. 
-\\ The units in galpy are not physical units. \texttt{galpy} uses natural units such that circular velocity is one at a cylindrical radius of one and height of zero. (cite galpy paper). So in order to convert to physical units, one needs to multiply the output by the actual values. for instance, one needs to multiply position by $8 \, kpc$ and the velocity by $220 \, kms^{-1}$ in a model where the Sun is assumed to be at $8 \, kpc $ from the Galactic centre and has the circular velocity of $220 \, kms^{-1}$.
+I will be using \texttt{galpy} which is a Python package written for galactic dynamics calculations. \texttt{galpy} includes a vast number of functions including different galactic potentials and integrations methods. There are different types of potentials such as one, two and three dimensional potentials which the latter is the more realistic one. 
+\\ The units in galpy are not physical units. \texttt{galpy} uses natural units that ensures that the circular velocity is one at a cylindrical radius of one and height of zero. (cite galpy paper). So in order to convert to physical units, one needs to multiply the output by the actual values. for instance, one needs to multiply position by $8 \, kpc$ and the velocity by $220 \, kms^{-1}$ in a model where the Sun is assumed to be at $8 \, kpc $ from the Galactic centre and has the circular velocity of $220 \, kms^{-1}$.
 
 \subsection{Coordinate transformations}
-We need to convert  from the equatorial coordinates given by declination,$\delta$ and right ascension,$\alpha$ to the cartesian coordinates, x,y,z:
+In order to initialize stream orbit in \texttt{galpy}, we need to have the initial conditions in cylindrical coordinates. So we will be using a lot of coordinate transformations from stream coordinates to the cylindrical coordinates. One way to do so is to convert the stream coordinates to equaltorial coordinates, $\alpha$ and $\delta$ using equation (?):
+
+\begin{equation}
+\begin{bmatrix}
+\cos(\alpha) \cos(\delta)
+\\ \sin(\alpha) \cos(\delta) 
+\\ \sin(\delta)
+
+\end{bmatrix} = \begin{bmatrix}
+-0.4776303088  &  0.510844589 & 0.7147776536 \\ 
+-0.1738432154 & -0.8524449229 & 0.493068392  \\
+ 0.8611897727  &  0.111245042 & 0.4959603976 
+\end{bmatrix} \times  \begin{bmatrix}
+\cos(\phi_1) \cos(\phi_2)
+\\\sin(\phi_1)\cos(\phi_2)
+\\ \sin(\phi_2),
+\end{bmatrix}
+\end{equation}
+
+Once we have declination,$\delta$ and right ascension,$\alpha$, we can convert them to Cartesian co-ordinates, xyz by:
 
 \begin{eqnarray}
 x & = & \cos(\delta) \cos(\alpha) \\ \nonumber
@@ -69,28 +88,29 @@ y & = & \cos(\delta) \sin(\alpha)  \\ \nonumber
 z & = & \sin(\alpha) \\ \nonumber 
 \end{eqnarray}
 
-we need to convert the stream coordinates to equatorial coordinate by the transformation below:
 
-\begin{equation}
-\begin{bmatrix}
-\cos(\phi_1) \cos(\phi_2)
-\\ \sin(\phi_1)\cos(\phi_2)
-\\ \sin(\phi_2)
+%we need to convert the stream coordinates to equatorial coordinate by the transformation below:
 
-\end{bmatrix} = \begin{bmatrix}
--0.4776303088 &  -0.1738432154 & 0.8611897727 \\ 
- 0.510844589 & -0.8524449229 & 0.111245042 \\ 
-0.7147776536 & 0.493068392 & 0.4959603976 
-\end{bmatrix} \times  \begin{bmatrix}
-\cos(\alpha) \cos(\delta)
-\\ \sin(\alpha) \cos(\delta) 
-\\ \sin(\delta)
-\end{bmatrix}
-\end{equation}
+%\begin{equation}
+%\begin{bmatrix}
+%\cos(\phi_1) \cos(\phi_2)
+%\\ \sin(\phi_1)\cos(\phi_2)
+%\\ \sin(\phi_2)
 
-These coordinate transformation are all available in \texttt{galpy} in the utilities folder. (I can use phi12\_to\_lb and returning $\alpha$ and $\delta$ instead of what is being returned now. Then I can convert equatorial to xyz coordinates)
+%\end{bmatrix} = \begin{bmatrix}
+%-0.4776303088 &  -0.1738432154 & 0.8611897727 \\ 
+ %0.510844589 & -0.8524449229 & 0.111245042 \\ 
+%0.7147776536 & 0.493068392 & 0.4959603976 
+%\end{bmatrix} \times  \begin{bmatrix}
+%\cos(\alpha) \cos(\delta)
+%\\ \sin(\alpha) \cos(\delta) 
+%\\ \sin(\delta)
+%\end{bmatrix}
+%\end{equation}
 
-We can convert the Cartesian coordinates to the cylindrical coordinates:
+%These coordinate transformation are all available in \texttt{galpy} in the utilities folder. (I can use phi12\_to\_lb and returning $\alpha$ and $\delta$ instead of what is being returned now. Then I can convert equatorial to xyz coordinates)
+
+We can then convert the Cartesian coordinates to the cylindrical coordinates, $R,z,\phi$ using equation(?):
 
 \begin{eqnarray}
 R & = & \sqrt{x^2 + y^2} \\ \nonumber
@@ -98,13 +118,16 @@ R & = & \sqrt{x^2 + y^2} \\ \nonumber
 z & = & z, \nonumber
 \end{eqnarray}
 
-For initializing the galpy orbit instance we need the initial coordinate of the stream  and its initial velocities in cylindrical coordinates. 
-We can also convert the velocities in Cartesian co-ordinates to the velocities in cylindrical coordinate by equation (number it):
+We also need to have the initial velocities in cylindrical coordinates and if we have the initial coordinates in cartesian coordinates, they can easily be converted to cylindrical ones using equation (?):
+
 \begin{eqnarray}
 v_R & = & v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber 
 v_T & = & -v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber
 v_z & = &  v_z,  \nonumber
 \end{eqnarray}
+
+\texttt{galpy} also takes the initial positions and velocities in observed coordinates, right ascension and declination and distance to the stream and also the velocities in these coordinates.
+We can also initialize orbit such that the returned quantities are in physical units.
 
 
 
