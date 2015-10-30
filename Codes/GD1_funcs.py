@@ -4,6 +4,7 @@ from   galpy.util       import bovy_coords
 from   galpy            import potential
 from   galpy.orbit      import Orbit
 from   galpy            import util
+from   scipy.integrate  import simps
 
 
 #----------------------------------------------------------
@@ -55,7 +56,6 @@ def phi12_to_radec(phi1,phi2,degree=False):
     if ra < 0.:
         ra += 2.*np.pi
     
-    #ra += np.pi
 
     return ra,dec
 
@@ -100,7 +100,6 @@ def radec_to_phi12(ra,dec,degree=False):
         phi1 += 2.*np.pi
 
     return phi1,phi2
-
 
 
 def radec_to_lb(ra,dec):
@@ -158,8 +157,11 @@ def xyz_to_cyl(x,y,z):
     """
 
     
-    R   = np.sqrt((x**2) + (y**2))
-    phi = np.arctan2(y,x)
+    R    = np.sqrt((x**2) + (y**2))
+    phi  = np.arctan2(y,x)
+    if phi<0:
+        phi += 2 * np.pi
+    
     return np.array([R,z,phi])
 
 
@@ -209,7 +211,7 @@ def deriv(phi1,phi2,v_phi1,v_phi2,A,B,C,deg_type=False):
         Derivative of each row of matrix M * C
     """
 
-# convert angles to radians for the sin and cos functions
+    # convert angles to radians for the sin and cos functions
     if deg_type == True:
         phi1 *= np.pi/180.
         phi2 *= np.pi/180.
@@ -337,9 +339,7 @@ def vxvyvz_to_vrvtvz(x,y,z,vx,vy,vz):
     """
     Conversion of velocities in Cartesian coordinates
     to Cylindrical coordinates
-    """
     
-    """
     Parameters
     ----------------------------------------------------
         x,y,z : coordinate of the stream in cartesian 
@@ -444,20 +444,53 @@ def table4_kop2010():
 #                  Likelihood Function
 #----------------------------------------------------------
 
-def likelihood(x_model,x_data,x_err,y_model,y_data,y_err):
+def likelihood(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
+    
     """
-    Returning log likelihood of the data
+    Parameters
+    ----------------------------------------------------
+        x_model, y_model:
+            theory values which are a function of time
+            the
+            
+        x_data , y_data :
+        
+        
+        x_err  , y_err  :
+        
+        
+        integ_var       : 
+            integration variable (it can be time in this case)
+        
+    Functionality
+    ----------------------------------------------------
+    
+        
+    Return
+    ----------------------------------------------------
+    
+
     """
     
-    val_x = np.exp((-((x_model-x_data)**2))/(2.*(x_err**2)))
-    val_y = np.exp((-((y_model-y_data)**2))/(2.*(y_err**2)))
-    L     = val_x * val_y
-    return L
+    L = []
+    for i in range(len(x_model)):
+        val_x = np.exp((-((x_model[i]-x_data)**2))/(2.*(x_err**2)))
+        val_y = np.exp((-((y_model[i]-y_data)**2))/(2.*(y_err**2)))
+        val   = val_x * val_y
+        L.append(val)
+    
+    final_val = simps(L,x=integ_var)
+    return final_val
 
-
-
-
-
+# likelihood(PHI1,phi1[0],0.08,PHI2,phi2[0],phi2_err[0],time)
+'''
+L = []
+for i in range(len(x_model)):
+    val_x = np.exp((-((x_model[i]-x_data)**2))/(2.*(x_err**2)))
+    val_y = np.exp((-((y_model[i]-y_data)**2))/(2.*(y_err**2)))
+    val   = val_x * val_y
+    L.append(val)
+'''
 
 
 
