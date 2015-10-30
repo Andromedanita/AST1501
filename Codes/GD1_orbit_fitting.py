@@ -57,12 +57,24 @@ phi1,phi2,phi2_err = table2_kop2010()
 plt.ion()
 plt.plot(PHI1,PHI2,linewidth=2,color='teal',label='galpy')
 plt.plot(phi1,phi2,linewidth=2,color='red',label='GD data')
-#plt.plot(phi1_test,phi2_test,'o',label='lb to phi')
+plt.plot(phi1_test,phi2_test,'o',label='lb to phi')
 plt.legend(loc='best')
 plt.xlabel("$\phi_1 \, [deg]$",fontsize=20)
 plt.ylabel("$\phi_2 \, [deg]$",fontsize=20)
 #plt.ylabel("$\ph2_1\,[deg]$",fontsize=20)
 
+
+
+# likelihood(PHI1,phi1[0],0.08,PHI2,phi2[0],phi2_err[0],time)
+'''
+# testing likelihood function
+L = []
+for i in range(len(x_model)):
+val_x = np.exp((-((x_model[i]-x_data)**2))/(2.*(x_err**2)))
+val_y = np.exp((-((y_model[i]-y_data)**2))/(2.*(y_err**2)))
+val   = val_x * val_y
+L.append(val)
+'''
 
 '''
 ############  testing ##################

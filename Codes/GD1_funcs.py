@@ -482,15 +482,43 @@ def likelihood(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
     final_val = simps(L,x=integ_var)
     return final_val
 
-# likelihood(PHI1,phi1[0],0.08,PHI2,phi2[0],phi2_err[0],time)
-'''
-L = []
-for i in range(len(x_model)):
-    val_x = np.exp((-((x_model[i]-x_data)**2))/(2.*(x_err**2)))
-    val_y = np.exp((-((y_model[i]-y_data)**2))/(2.*(y_err**2)))
-    val   = val_x * val_y
-    L.append(val)
-'''
+
+def pmradec_to_pmlb(R,ra,dec,vr,vra,vdec):
+    '''
+    proper motion in equatorial coordinates to
+    proper motion in Galactic coordinates to use
+    in Jo's function to convert to proper motion
+    in stream coordinates
+    '''
+   
+    l,b      = bovy_coords.radec_to_lb(ra,dec,degree=False,epoch=2000.0)
+    dec_NGP  = 27.12825  # degrees
+    ra_NGP   = 192.85948 # degrees
+    dec_NGP *= np.pi/180.
+    ra_NGP  *= np.pi/180.
+    num1     = np.sin(dec_NGP) - (np.sin(dec) * np.sin(b))
+    denom1   = np.cos(dec) * np.cos(b)
+    num2     = np.sin(ra-ra_NGP) * np.cos(dec_NGP)
+    denom2   = np.cos(b)
+   
+    cos_phi  = num1/denom1
+    sin_phi  = num2/denom2
+   
+    M        = np.zeros((3,3))
+    M[0,:]   = [1,0,0]
+    M[1,:]   = [0,cos_phi,sin_phi]
+    M[2,:]   = [0,-sin_phi,cos_phi]
+    
+    C = np.array([vr,1./R * vra,np.cos(dec),1./R * vdec])
+    
+    
+    val = np.dot(M,C)
+    
+    return val
+
+
+
+
 
 
 
