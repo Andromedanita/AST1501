@@ -10,7 +10,7 @@ vxi,vyi,vzi = np.array([-200.4,-162.6,13.9])/220. # (km/s) in natural units
 
 
 # initial coordinates in cylindrical coordinates
-Ri,zcyli,phii = xyz_to_cyl(xi,yi,zi)
+Ri,zcyli,phii = xyz_to_cyl(xi,yi,zi) # phi is in radians
 
 
 # initial velocities in cylindrical coordinates
@@ -28,23 +28,26 @@ o    = Orbit(vxvv=[Ri,vri,vti,zcyli,vzcyli,phii],ro=8.5,vo=220.)
 
 o.integrate(time,p)
 
-RA  = o.ra(time,ro=distance,obs=[distance,0.])
-DEC = o.dec(time,ro=distance,obs=[distance,0.])
+#### galpy values ####
+RA  = o.ra(time,ro=distance,obs=[distance,0.])   # in degrees
+DEC = o.dec(time,ro=distance,obs=[distance,0.])  # in degrees
+
 
 func = np.vectorize(radec_to_phi12)
 
-PHI1,PHI2 = func(RA,DEC,degree=True)
-PHI1 *= 180./np.pi
-PHI2 *= 180./np.pi
+PHI1,PHI2 = func(RA,DEC,degree=True) # phi1 and phi2 are in radians
+
+PHI1 *= 180./np.pi # in degrees
+PHI2 *= 180./np.pi # in degrees
 
 ##### RA and Dec to lb --> phi1 and phi2 using Jo's code  #####
 lb_test = mw.radec_to_lb(RA,DEC,degree=True,epoch=2000.0)
-l_test = lb_test.T[0] # in degree
-b_test = lb_test.T[1] # in degree
+l_test  = lb_test.T[0] # in degree
+b_test  = lb_test.T[1] # in degree
 
-phi_test = mw.lb_to_phi12(l_test,b_test,degree=True)
-phi1_test = phi_test.T[0]
-phi2_test = phi_test.T[1]
+phi_test  = mw.lb_to_phi12(l_test,b_test,degree=True)
+phi1_test = (phi_test.T[0]) * 180./np.pi
+phi2_test = (phi_test.T[1]) * 180./np.pi
 
 
 
@@ -54,6 +57,7 @@ phi1,phi2,phi2_err = table2_kop2010()
 plt.ion()
 plt.plot(PHI1,PHI2,linewidth=2,color='teal',label='galpy')
 plt.plot(phi1,phi2,linewidth=2,color='red',label='GD data')
+#plt.plot(phi1_test,phi2_test,'o',label='lb to phi')
 plt.legend(loc='best')
 plt.xlabel("$\phi_1 \, [deg]$",fontsize=20)
 plt.ylabel("$\phi_2 \, [deg]$",fontsize=20)
