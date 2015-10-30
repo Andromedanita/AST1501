@@ -1,3 +1,8 @@
+_TKOP= numpy.zeros((3,3))
+_TKOP[0,:]= [-0.4776303088,-0.1738432154,0.8611897727]
+_TKOP[1,:]= [0.510844589,-0.8524449229,0.111245042]
+_TKOP[2,:]= [0.7147776536,0.4930681392,0.4959603976]
+
 def get_epoch_angles(epoch=2000.0):
     """
     NAME:
@@ -85,10 +90,6 @@ def lb_to_phi12(l,b,degree=False):
     import numpy
     from   galpy.util import bovy_coords
     
-    _TKOP= numpy.zeros((3,3))
-    _TKOP[0,:]= [-0.4776303088,-0.1738432154,0.8611897727]
-    _TKOP[1,:]= [0.510844589,-0.8524449229,0.111245042]
-    _TKOP[2,:]= [0.7147776536,0.4930681392,0.4959603976]
     #First convert to ra and dec
     radec= bovy_coords.lb_to_radec(l,b)
     ra= radec[:,0]
@@ -103,3 +104,62 @@ def lb_to_phi12(l,b,degree=False):
     return numpy.array([phi1,phi2]).T
 
 
+def pmllpmbb_to_pmphi12(pmll,pmbb,l,b,degree=False):
+    """
+    NAME:
+       pmllpmbb_to_pmphi12
+    PURPOSE:
+       Transform proper motions in Galactic coordinates (l,b) to (phi1,phi2)
+    INPUT:
+       pmll - proper motion Galactic longitude (rad or degree); contains xcosb
+       pmbb - Galactic latitude (rad or degree)
+       l - Galactic longitude (rad or degree)
+       b - Galactic latitude (rad or degree)
+       degree= (False) if True, input (l,b) are in degrees
+    OUTPUT:
+       (pmphi1,pmphi2) for scalar input
+       [:,2] array for vector input
+    HISTORY:
+        2014-11-04 - Written - Bovy (IAS)
+    """
+    import numpy
+    from   galpy.util import bovy_coords
+    
+    #First go to ra and dec
+    radec= bovy_coords.lb_to_radec(l,b)
+    ra= radec[:,0]
+    dec= radec[:,1]
+    pmradec= bovy_coords.pmllpmbb_to_pmrapmdec(pmll,pmbb,l,b,degree=False)
+    pmra= pmradec[:,0]
+    pmdec= pmradec[:,1]
+    #Now transform ra,dec pm to phi1,phi2
+    phi12= lb_to_phi12(l,b,degree=False)
+    phi1= phi12[:,0]
+    phi2= phi12[:,1]
+    #Build A and Aphi matrices
+    A= numpy.zeros((3,3,len(ra)))
+    A[0,0]= numpy.cos(ra)*numpy.cos(dec)
+    A[0,1]= -numpy.sin(ra)
+    A[0,2]= -numpy.cos(ra)*numpy.sin(dec)
+    A[1,0]= numpy.sin(ra)*numpy.cos(dec)
+    A[1,1]= numpy.cos(ra)
+    A[1,2]= -numpy.sin(ra)*numpy.sin(dec)
+    A[2,0]= numpy.sin(dec)
+    A[2,1]= 0.
+    A[2,2]= numpy.cos(dec)
+    AphiInv= numpy.zeros((3,3,len(ra)))
+    AphiInv[0,0]= numpy.cos(phi1)*numpy.cos(phi2)
+    AphiInv[0,1]= numpy.cos(phi2)*numpy.sin(phi1)
+    AphiInv[0,2]= numpy.sin(phi2)
+    AphiInv[1,0]= -numpy.sin(phi1)
+    AphiInv[1,1]= numpy.cos(phi1)
+    AphiInv[1,2]= 0.
+    AphiInv[2,0]= -numpy.cos(phi1)*numpy.sin(phi2)
+    AphiInv[2,1]= -numpy.sin(phi1)*numpy.sin(phi2)
+    AphiInv[2,2]= numpy.cos(phi2)
+    TA= numpy.dot(_TKOP,numpy.swapaxes(A,0,1))
+    #Got lazy...
+    trans= numpy.zeros((2,2,len(ra)))
+    for ii in range(len(ra)):
+        trans[:,:,ii]= numpy.dot(AphiInv[:,:,ii],TA[:,:,ii])[1:,1:]
+    return (trans*numpy.array([[pmra,pmdec],[pmra,pmdec]])).sum(1).T
