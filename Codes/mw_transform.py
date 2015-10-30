@@ -1,7 +1,5 @@
-_TKOP= numpy.zeros((3,3))
-_TKOP[0,:]= [-0.4776303088,-0.1738432154,0.8611897727]
-_TKOP[1,:]= [0.510844589,-0.8524449229,0.111245042]
-_TKOP[2,:]= [0.7147776536,0.4930681392,0.4959603976]
+
+from galpy.util import bovy_coords
 
 def get_epoch_angles(epoch=2000.0):
     """
@@ -70,7 +68,8 @@ def radec_to_lb(ra,dec,degree=False,epoch=2000.0):
     return out.T
 
 
-
+@bovy_coords.scalarDecorator
+@bovy_coords.degreeDecorator([0,1],[0,1])
 def lb_to_phi12(l,b,degree=False):
     """
     NAME:
@@ -89,6 +88,12 @@ def lb_to_phi12(l,b,degree=False):
     """
     import numpy
     from   galpy.util import bovy_coords
+    
+    
+    _TKOP= numpy.zeros((3,3))
+    _TKOP[0,:]= [-0.4776303088,-0.1738432154,0.8611897727]
+    _TKOP[1,:]= [0.510844589,-0.8524449229,0.111245042]
+    _TKOP[2,:]= [0.7147776536,0.4930681392,0.4959603976]
     
     #First convert to ra and dec
     radec= bovy_coords.lb_to_radec(l,b)
@@ -124,6 +129,12 @@ def pmllpmbb_to_pmphi12(pmll,pmbb,l,b,degree=False):
     """
     import numpy
     from   galpy.util import bovy_coords
+    
+    
+    _TKOP= numpy.zeros((3,3))
+    _TKOP[0,:]= [-0.4776303088,-0.1738432154,0.8611897727]
+    _TKOP[1,:]= [0.510844589,-0.8524449229,0.111245042]
+    _TKOP[2,:]= [0.7147776536,0.4930681392,0.4959603976]
     
     #First go to ra and dec
     radec= bovy_coords.lb_to_radec(l,b)
