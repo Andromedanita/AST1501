@@ -472,14 +472,16 @@ def likelihood(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
 
     """
     
-    L = []
-    for i in range(len(x_model)):
-        val_x = np.exp((-((x_model[i]-x_data)**2))/(2.*(x_err**2)))
-        val_y = np.exp((-((y_model[i]-y_data)**2))/(2.*(y_err**2)))
-        val   = val_x * val_y
-        L.append(val)
+    n          = len(x_model)
+    x_data_arr = np.ones(n) * x_data
+    y_data_arr = np.ones(n) * y_data
     
-    final_val = simps(L,x=integ_var)
+    val_x      = np.exp((-((x_model-x_data_arr)**2))/(2.*(x_err**2)))
+    val_y      = np.exp((-((y_model-y_data_arr)**2))/(2.*(y_err**2)))
+    val        = val_x * val_y
+    
+    final_val  = simps(val,x=integ_var)
+    
     return final_val
 
 

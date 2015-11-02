@@ -1,138 +1,131 @@
 from   GD1_funcs    import *
 import mw_transform as     mw
 
+#----------------------------------------------------------
+#                   Koposov 2010 Fig. 1
+#----------------------------------------------------------
+
+# reference position and velocity
+ro = 8.5
+vo = 220.
 
 # initial positions in cartesian coordinates in natural units
-xi,yi,zi = np.array([3.41,13.00,9.58])/distance  # (kpc) in natural units
-
+xi,yi,zi = np.array([3.41,13.00,9.58]) # (kpc) in physical units (same as Koposov 2010
+                                       #  with x sign flipped
 # initial velocities in cartesian coordinates in natural units
-vxi,vyi,vzi = np.array([200.4,-162.6,13.9])/220. # (km/s) in natural units
-
+vxi,vyi,vzi = np.array([200.4,-162.6,13.9]) # (km/s) in physical units
 
 # initial coordinates in cylindrical coordinates
 Ri,zcyli,phii = xyz_to_cyl(xi,yi,zi) # phi is in radians
 
-
 # initial velocities in cylindrical coordinates
 vri,vti,vzcyli = vxvyvz_to_vrvtvz(xi,yi,zi,vxi,vyi,vzi)
 
-# calling the potential
+
+# Initializing potential and orbit
 p    = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
-
-# initiating the orbit
 ts   = 1000 # number of timesteps
-time = np.linspace(0.,15,ts)
-o    = Orbit(vxvv=[Ri,vri,vti,zcyli,vzcyli,phii],ro=8.5,vo=220.)
-
+time = np.linspace(0.,1e1,ts)
+o    = Orbit(vxvv=[Ri/ro,vri/vo,vti/vo,zcyli/ro,vzcyli/vo,phii],ro=ro,vo=vo)
 o.integrate(time,p)
 
-#### galpy values ####
-RA  = o.ra(time,ro=distance,obs=[distance,0.,0.02])   # in degrees
-DEC = o.dec(time,ro=distance,obs=[distance,0.,0.02])  # in degrees
 
+# Orbit in Galactic coordinates
+lval = o.ll(time,ro = ro,obs= [ro,0.,0.])
+bval = o.bb(time,ro = ro,obs= [ro,0.,0.])
 
-func = np.vectorize(radec_to_phi12)
+phi12 = mw.lb_to_phi12(lval,bval,degree=True)
+phi12[phi12[:,0] > 180,0]-= 360.
 
-PHI1,PHI2 = func(RA,DEC,degree=True) # phi1 and phi2 are in radians
-
-PHI1 *= 180./np.pi # in degrees
-PHI2 *= 180./np.pi # in degrees
-
-##### RA and Dec to lb --> phi1 and phi2 using Jo's code  #####
-lb_test = bovy_coords.radec_to_lb(RA,DEC,degree=True,epoch=2000.0)
-l_test  = lb_test.T[0] # in degree
-b_test  = lb_test.T[1] # in degree
-
-phi_test  = mw.lb_to_phi12(l_test,b_test,degree=True)
-phi1_test = (phi_test.T[0]) #* 180./np.pi
-phi2_test = (phi_test.T[1]) #* 180./np.pi
-
-
-
-###### paper data #####
+# Koposov 2010 data
 phi1,phi2,phi2_err = table2_kop2010()
 
+# plotting
 plt.ion()
-plt.plot(PHI1,PHI2,linewidth=2,color='teal',label='galpy')
-plt.plot(phi1,phi2,linewidth=2,color='red',label='GD data')
-plt.plot(phi1_test,phi2_test,'o',label='lb to phi')
+plt.plot(phi12[:,0],phi12[:,1],linewidth=2,color='blue',label='galpy fit')
+#plt.errorbar(phi1,phi2,yerr = phi2_err,fmt='o',ecolor='g')
+plt.errorbar(phi1,phi2,yerr=phi2_err,marker='o',color='red',label='GD-1 data')
 plt.legend(loc='best')
-plt.xlabel("$\phi_1 \, [deg]$",fontsize=20)
-plt.ylabel("$\phi_2 \, [deg]$",fontsize=20)
-#plt.ylabel("$\ph2_1\,[deg]$",fontsize=20)
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$\phi_2 \, \mathrm{[deg]}$",fontsize=20)
+plt.xlim(-80,20)
+plt.ylim(-4,2)
 
 
-
-# likelihood(PHI1,phi1[0],0.08,PHI2,phi2[0],phi2_err[0],time)
-'''
-# testing likelihood function
-L = []
-for i in range(len(x_model)):
-val_x = np.exp((-((x_model[i]-x_data)**2))/(2.*(x_err**2)))
-val_y = np.exp((-((y_model[i]-y_data)**2))/(2.*(y_err**2)))
-val   = val_x * val_y
-L.append(val)
-'''
-
-'''
-############  testing ##################
-    
-# in R and z coordinates
-    
-phi1,phi2,phi2_err = table2_kop2010()    # getting Koposov values
-dec                = np.zeros(len(phi1)) # initializing array
-ra                 = np.zeros(len(phi1)) # ...
-    
-# converting phi1 and phi2 to RA and DEC
+# testing the likelihood
+x_err  = np.random.ranf(len(phi1))
+L_list = []
 for i in range(len(phi1)):
-ra[i],dec[i] = phi12_to_radec(phi1[i],phi2[i],degree=True)
-    
-# converting RA and DEC to xyz cartesian coordinates
-x,y,z       = radec_to_xyz(dec,ra,distance,degree=False)
-    
-# converting xyz cartesian coordinates to cylindrical coordinates
-R,z_cyl,phi = xyz_to_cyl(x,y,z)
-    
-# in phi1 and phi2 coordinates
-Rvals   = o.R(time)
-zvals   = o.z(time)
-phivals = o.phi(time)
-    
+    l = likelihood(phi12[:,0],phi1[i],x_err[i],phi12[:,1],phi2[i],phi2_err[i],time)
+    L_list.append(l)
 
-plt.figure(1)
-plt.plot(Rvals,zvals,linewidth=2,color='blue')
-plt.plot(R/distance,z_cyl/distance,'ro')
-plt.title("in cylindrical coordinate")
-'''
+chi2 = -2. * np.log(L_list)
 
-
-'''
-xf,yf,zf = cyl_to_xyz(Rvals,zvals,phivals)
-    
-func        = np.vectorize(xyz_to_radex)
-raf,decf,df = func(xf,yf,zf)
-    
-phi1f,phi2f = radec_to_phi12(decf,raf,df)
-    
 plt.figure(2)
-plt.plot(phi1f,phi2f,linewidth=2,color='blue')
-plt.plot(phi1,phi2,'ro')
-plt.title("in stream coordinate")
-'''
+plt.plot(phi1,chi2,linewidth=2,color='teal',label='likelihood')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$\chi^2$",fontsize=20)
 
-'''
-# testing to compare coordinate transformation from phi12 to cylindrical
-# and vice versa to see if they match. They only match if I add 180 degrees to
-# the right ascension in phi12_to_radec function :(
-    
-xf,yf,zf     = cyl_to_xyz(R,z_cyl,phi)
-    
-#raf,decf,df = xyz_to_radex(xf,yf,zf)
-    
-func         = np.vectorize(xyz_to_radex)
-raf,decf,df  = func(xf,yf,zf)
-    
-phi1f,phi2f  = radec_to_phi12(raf,decf,df)
-'''
+#----------------------------------------------------------
+#                   Koposov 2010 Fig. 2
+#----------------------------------------------------------
+
+# velocities obtained by galpy in Galactic coordinates
+
+
+# velocities transformed from Galactic to stream coordinates
+
+
+
+
+
+
+
+
+#----------------------------------------------------------
+#                   Koposov 2010 Fig. 3
+#----------------------------------------------------------
+
+phi1,dist,dist_err = table3_kop2010()
+
+plt.figure(3)
+plt.plot(phi12[:,0],o.dist(time),linewidth=2,color='blue',label='galpy fit')
+plt.errorbar(phi1,dist,yerr = dist_err,marker='o',color='red',label='GD-1 data')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("distance [kpc]",fontsize=15)
+plt.title("Distance vs. $\phi_1$")
+plt.legend(loc='best')
+plt.xlim(-80,20)
+plt.ylim(6,14)
+
+
+#----------------------------------------------------------
+#                   Koposov 2010 Fig. 4
+#----------------------------------------------------------
+
+
+
+#### galpy values ####
+#RA  = o.ra(time,ro=distance,obs=[distance,0.,0.02])   # in degrees
+#DEC = o.dec(time,ro=distance,obs=[distance,0.,0.02])  # in degrees
+
+
+#func = np.vectorize(radec_to_phi12)
+
+#PHI1,PHI2 = func(RA,DEC,degree=True) # phi1 and phi2 are in radians
+
+#PHI1 *= 180./np.pi # in degrees
+#PHI2 *= 180./np.pi # in degrees
+
+##### RA and Dec to lb --> phi1 and phi2 using Jo's code  #####
+#lb_test = bovy_coords.radec_to_lb(RA,DEC,degree=True,epoch=2000.0)
+#l_test  = lb_test.T[0] # in degree
+#b_test  = lb_test.T[1] # in degree
+
+#phi_test  = mw.lb_to_phi12(l_test,b_test,degree=True)
+#phi1_test = (phi_test.T[0]) #* 180./np.pi
+#phi2_test = (phi_test.T[1]) #* 180./np.pi
+
+
 
 
