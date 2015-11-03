@@ -1,6 +1,8 @@
 from   GD1_funcs    import *
 import mw_transform as     mw
 
+#%pylab inline
+
 #----------------------------------------------------------
 #                   Koposov 2010 Fig. 1
 #----------------------------------------------------------
@@ -40,11 +42,13 @@ phi12[phi12[:,0] > 180,0]-= 360.
 # Koposov 2010 data
 phi1,phi2,phi2_err = table2_kop2010()
 
+x_err  = np.random.ranf(len(phi1))
+
 # plotting
 plt.ion()
 plt.plot(phi12[:,0],phi12[:,1],linewidth=2,color='blue',label='galpy fit')
 #plt.errorbar(phi1,phi2,yerr = phi2_err,fmt='o',ecolor='g')
-plt.errorbar(phi1,phi2,yerr=phi2_err,marker='o',color='red',label='GD-1 data')
+plt.errorbar(phi1,phi2,xerr = x_err,yerr=phi2_err,marker='o',linestyle='',ecolor='r',color='red',label='GD-1 data')
 plt.legend(loc='best')
 plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
 plt.ylabel("$\phi_2 \, \mathrm{[deg]}$",fontsize=20)
@@ -53,7 +57,7 @@ plt.ylim(-4,2)
 
 
 # testing the likelihood
-x_err  = np.random.ranf(len(phi1))
+
 L_list = []
 for i in range(len(phi1)):
     l = likelihood(phi12[:,0],phi1[i],x_err[i],phi12[:,1],phi2[i],phi2_err[i],time)
@@ -90,7 +94,7 @@ phi1,dist,dist_err = table3_kop2010()
 
 plt.figure(3)
 plt.plot(phi12[:,0],o.dist(time),linewidth=2,color='blue',label='galpy fit')
-plt.errorbar(phi1,dist,yerr = dist_err,marker='o',color='red',label='GD-1 data')
+plt.errorbar(phi1,dist,yerr = dist_err,marker='o',linestyle='',color='red',label='GD-1 data')
 plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
 plt.ylabel("distance [kpc]",fontsize=15)
 plt.title("Distance vs. $\phi_1$")
@@ -99,9 +103,41 @@ plt.xlim(-80,20)
 plt.ylim(6,14)
 
 
+# testing the likelihood
+x_err  = np.random.ranf(len(phi1))
+L_list = []
+for i in range(len(phi1)):
+    l = likelihood(phi12[:,0],phi1[i],x_err[i],o.dist(time),dist[i],dist_err[i],time)
+    L_list.append(l)
+
+chi2_dist = -2. * np.log(L_list)
+
+plt.figure(4)
+plt.plot(phi1,chi2_dist,linewidth=2,color='teal',label='likelihood')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$\chi^2$",fontsize=20)
+
+
 #----------------------------------------------------------
 #                   Koposov 2010 Fig. 4
 #----------------------------------------------------------
+
+phi1,Vrad,V_err = table1_kop2010()
+
+vrad_galpy      = o.vlos(time)
+
+plt.figure(5)
+plt.errorbar(phi1,Vrad,V_err,marker='o',linestyle='',color='red',label='GD-1 data')
+plt.plot(phi12[:,0],vrad_galpy,linewidth=2,color='blue',label='galpy')
+plt.xlim(-80,20)
+plt.ylim(-350,150)
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$V_{rad} \, \mathrm{[km/s]}$",fontsize=20)
+
+
+
+
+
 
 
 
