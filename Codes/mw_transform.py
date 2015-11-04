@@ -109,12 +109,14 @@ def lb_to_phi12(l,b,degree=False):
     return numpy.array([phi1,phi2]).T
 
 
+@bovy_coords.scalarDecorator
+@bovy_coords.degreeDecorator([2,3],[])
 def pmllpmbb_to_pmphi12(pmll,pmbb,l,b,degree=False):
     """
     NAME:
        pmllpmbb_to_pmphi12
     PURPOSE:
-       Transform proper motions in Galactic coordinates (l,b) to (phi1,phi2)
+       Transform proper mtions in Galactic coordinates (l,b) to (phi1,phi2)
     INPUT:
        pmll - proper motion Galactic longitude (rad or degree); contains xcosb
        pmbb - Galactic latitude (rad or degree)

@@ -41,19 +41,7 @@ phi12[phi12[:,0] > 180,0]-= 360.
 
 # Koposov 2010 data
 phi1,phi2,phi2_err = table2_kop2010()
-
 x_err  = np.random.ranf(len(phi1))
-
-# plotting
-plt.ion()
-plt.plot(phi12[:,0],phi12[:,1],linewidth=2,color='blue',label='galpy fit')
-#plt.errorbar(phi1,phi2,yerr = phi2_err,fmt='o',ecolor='g')
-plt.errorbar(phi1,phi2,xerr = x_err,yerr=phi2_err,marker='o',linestyle='',ecolor='r',color='red',label='GD-1 data')
-plt.legend(loc='best')
-plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
-plt.ylabel("$\phi_2 \, \mathrm{[deg]}$",fontsize=20)
-plt.xlim(-80,20)
-plt.ylim(-4,2)
 
 
 # testing the likelihood
@@ -65,7 +53,21 @@ for i in range(len(phi1)):
 
 chi2 = -2. * np.log(L_list)
 
-plt.figure(2)
+
+# plotting
+plt.ion()
+plt.figure(1,figsize=(15,8))
+plt.subplot(121)
+plt.plot(phi12[:,0],phi12[:,1],linewidth=2,color='black',label='galpy fit')
+plt.errorbar(phi1,phi2,xerr = x_err,yerr=phi2_err,marker='o',linestyle='',ecolor='r',color='red',label='GD-1 data')
+plt.legend(loc='best')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$\phi_2 \, \mathrm{[deg]}$",fontsize=20)
+plt.xlim(-80,20)
+plt.ylim(-4,2)
+
+
+plt.subplot(122)
 plt.plot(phi1,chi2,linewidth=2,color='teal',label='likelihood')
 plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
 plt.ylabel("$\chi^2$",fontsize=20)
@@ -74,16 +76,47 @@ plt.ylabel("$\chi^2$",fontsize=20)
 #                   Koposov 2010 Fig. 2
 #----------------------------------------------------------
 
-# velocities obtained by galpy in Galactic coordinates
+phi1,mu1,mu2,sigma_mu = table4_kop2010()
+
+vll = o.vll(time)
+vbb = o.vbb(time)
+
+pmll = o.pmll(time)
+pmbb = o.pmbb(time)
+
+galpy_vel = mw.pmllpmbb_to_pmphi12(pmll,pmbb,lval,bval,degree=True)
 
 
-# velocities transformed from Galactic to stream coordinates
+x_err  = np.random.ranf(len(phi1))
+L_mu1 = []
+L_mu2 = []
+for i in range(len(phi1)):
+    l1 = likelihood(phi12[:,0],phi1[i],x_err[i],galpy_vel.T[0],mu1[i],sigma_mu[i],time)
+    l2 = likelihood(phi12[:,0],phi1[i],x_err[i],galpy_vel.T[1],mu2[i],sigma_mu[i],time)
+    L_mu1.append(l1)
+    L_mu2.append(l2)
+
+chi2_mu1 = -2. * np.log(L_mu1)
+chi2_mu2 = -2. * np.log(L_mu2)
+
+plt.figure(2,figsize=(15,8))
+plt.subplot(121)
+plt.plot(phi12[:,0],galpy_vel.T[0]*3.6e6,linewidth=2,color='black',label='galpy fit $\phi_1$')
+plt.plot(phi12[:,0],galpy_vel.T[1]*3.6e6,linewidth=2,color='green',label='galpy fit $\phi_2$')
+plt.errorbar(phi1,mu1,xerr = x_err,yerr=sigma_mu,marker='o',color='red',label='$\mu_{\phi_1}$')
+plt.errorbar(phi1,mu2,xerr = x_err,yerr=sigma_mu,marker='o',color='blue',label='$\mu_{\phi_2}$')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$\mu \, \mathrm{[mas/yr]}$",fontsize=20)
+plt.xlim(-80,20)
+plt.ylim(-15,5)
+plt.legend(loc='best')
 
 
-
-
-
-
+plt.subplot(122)
+plt.plot(phi1,chi2_mu1,linewidth=2,color='teal',label='likelihood 1')
+plt.plot(phi1,chi2_mu2,linewidth=2,color='red',label='likelihood 2')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$\chi^2$",fontsize=20)
 
 
 #----------------------------------------------------------
@@ -92,18 +125,6 @@ plt.ylabel("$\chi^2$",fontsize=20)
 
 phi1,dist,dist_err = table3_kop2010()
 
-plt.figure(3)
-plt.plot(phi12[:,0],o.dist(time),linewidth=2,color='blue',label='galpy fit')
-plt.errorbar(phi1,dist,yerr = dist_err,marker='o',linestyle='',color='red',label='GD-1 data')
-plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
-plt.ylabel("distance [kpc]",fontsize=15)
-plt.title("Distance vs. $\phi_1$")
-plt.legend(loc='best')
-plt.xlim(-80,20)
-plt.ylim(6,14)
-
-
-# testing the likelihood
 x_err  = np.random.ranf(len(phi1))
 L_list = []
 for i in range(len(phi1)):
@@ -112,7 +133,19 @@ for i in range(len(phi1)):
 
 chi2_dist = -2. * np.log(L_list)
 
-plt.figure(4)
+plt.figure(3,figsize=(15,8))
+plt.subplot(121)
+plt.plot(phi12[:,0],o.dist(time),linewidth=2,color='black',label='galpy fit')
+plt.errorbar(phi1,dist,xerr = x_err,yerr = dist_err,marker='o',linestyle='',color='red',label='GD-1 data')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("distance [kpc]",fontsize=15)
+plt.title("Distance vs. $\phi_1$")
+plt.legend(loc='best')
+plt.xlim(-80,20)
+plt.ylim(6,14)
+
+
+plt.subplot(122)
 plt.plot(phi1,chi2_dist,linewidth=2,color='teal',label='likelihood')
 plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
 plt.ylabel("$\chi^2$",fontsize=20)
@@ -123,16 +156,33 @@ plt.ylabel("$\chi^2$",fontsize=20)
 #----------------------------------------------------------
 
 phi1,Vrad,V_err = table1_kop2010()
-
 vrad_galpy      = o.vlos(time)
 
-plt.figure(5)
-plt.errorbar(phi1,Vrad,V_err,marker='o',linestyle='',color='red',label='GD-1 data')
-plt.plot(phi12[:,0],vrad_galpy,linewidth=2,color='blue',label='galpy')
+
+x_err  = np.random.ranf(len(phi1))
+L_vrad = []
+for i in range(len(phi1)):
+    l = likelihood(phi12[:,0],phi1[i],x_err[i],vrad_galpy,Vrad[i],V_err[i],time)
+    L_vrad.append(l)
+
+chi2_vrad = -2. * np.log(L_vrad)
+
+
+plt.figure(4,figsize=(15,8))
+plt.subplot(121)
+plt.errorbar(phi1,Vrad,xerr = x_err,yerr=V_err,marker='o',linestyle='',color='red',label='GD-1 data')
+plt.plot(phi12[:,0],vrad_galpy,linewidth=2,color='black',label='galpy fit')
 plt.xlim(-80,20)
 plt.ylim(-350,150)
 plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
 plt.ylabel("$V_{rad} \, \mathrm{[km/s]}$",fontsize=20)
+plt.legend(loc='best')
+
+
+plt.subplot(122)
+plt.plot(phi1,chi2_vrad,linewidth=2,color='teal',label='likelihood')
+plt.xlabel("$\phi_1 \, \mathrm{[deg]}$",fontsize=20)
+plt.ylabel("$\chi^2$",fontsize=20)
 
 
 
