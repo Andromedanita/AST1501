@@ -70,9 +70,9 @@ I will be using \texttt{galpy} which is a Python package written for galactic dy
 \section{Method}
 
 \subsection{Orbit Fitting}
-As mentioned previously, the goal of this project is to constrain the potential of the Milky Way using the GD-1 stream data. To begin, we assume a single-component potential known as flattened logarithmic potential for the Milky Way. This potential is given by equation {}:
+As mentioned previously, the goal of this project is to constrain the potential of the Milky Way using the GD-1 stream data. To begin, we assume a single-component potential known as flattened logarithmic potential for the Milky Way. This potential is given by equation \ref{eq:logPotential}:
 
-\begin{equation}
+\begin{equation} \label{eq:logPotential}
 \Phi(x,y,z) = \frac{V_c^2}{2} \, \mathrm{ln} ({x}^2 + y^2 + (\frac{z}{q_{\Phi}})^2),
 \end{equation}
 where $V_c$ represents the circular velocity and $q_{\Phi}$ shows the flattening parameter. We can initialize this potential using \texttt{galpy} in the following way:
@@ -93,6 +93,67 @@ where ro and vo are the distance to and the velocity of the stream, respectively
 o = Orbit(vxvv=[Ra,Dec,distance,pmRa,pmDec,vlos],ro=ro,vo=vo)
 \end{verbatim}
 where pmRa is the proper motion in right ascension direction ($\mu_{\alpha}$), pmDec is the proper motion in the declination direction ($\mu_{\delta}$) and vlos is the line-of-sight velocity ($V_{los}$).
+
+Once we have the orbit initialized, we can integrate it so get the orbital properties at any given time. These properties include the position, velocity, proper motion, distance, energy and a lot more.
+
+We will be using the GD-1 stellar stream to constrain the potential and the initial conditions of this stream are given in Cartesian coordinates ($x,y,z$), so we need to convert the initial position and velocity components to be in cylindrical coordinates ($R,z,\phi$) to be able to initialize the orbit. This can simply be done by equations \ref{eq:cart_to_cyl} and \ref{eq:vcart_to_cyl} below:
+
+\begin{eqnarray} \label{eq:cart_to_cyl}
+R & = & \sqrt{x^2 + y^2} \\ \nonumber
+\phi & = & \arctan(\frac{y}{x})  \\ \nonumber
+z & = & z, \nonumber
+\end{eqnarray}
+
+and 
+
+\begin{eqnarray} \label{eq:vcart_to_cyl}
+v_R & = & v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber 
+v_T & = & -v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber
+v_z & = &  v_z,  \nonumber
+\end{eqnarray}
+
+
+From orbit integration, we get the proper motion of the stream in Galactic coordinates ($l,b,d$). We also want to have the proper motion of the stream in the stream coordinates ($\mu_{\phi_1},\mu_{\phi_2},V_{los}$). This transformation can be done using equation \ref{eq:proper_lb_phi12}:
+
+\begin{equation}  \label{eq:proper_lb_phi12}
+\begin{bmatrix}
+\mu_r
+\\ \mu_{\phi_1}
+\\ \mu_{\phi_2}
+\end{bmatrix} = \mathrm{R \,T \, A} \begin{bmatrix}
+\mu_r
+\\ \mu_{l}
+\\ \mu_{b}
+\end{bmatrix},
+\end{equation}
+
+where the matrices R, T and A are defined below by equations \ref{eq:R}, \ref{eq:T} and \ref{eq:A}, respectively:
+
+\begin{equation} \label{eq:R}
+\begin{bmatrix}
+  &   &  \\ 
+ &  &   \\
+  &   &  
+\end{bmatrix}
+\end{equation}
+
+
+\begin{equation} \label{eq:T}
+\begin{bmatrix}
+-0.4776303088  &  0.510844589 & 0.7147776536 \\ 
+-0.1738432154 & -0.8524449229 & 0.493068392  \\
+ 0.8611897727  &  0.111245042 & 0.4959603976 
+\end{bmatrix}
+\end{equation}
+
+\begin{equation} \label{eq:A}
+\begin{bmatrix}
+-0.4776303088  &  0.510844589 & 0.7147776536 \\ 
+-0.1738432154 & -0.8524449229 & 0.493068392  \\
+ 0.8611897727  &  0.111245042 & 0.4959603976 
+\end{bmatrix}
+\end{equation}
+
 
 \subsection{Likelihood}
 
@@ -135,22 +196,6 @@ y & = & \cos(\delta) \sin(\alpha)  \\ \nonumber
 z & = & \sin(\alpha) \\ \nonumber 
 \end{eqnarray}
 
-
-We can then convert the Cartesian coordinates to the cylindrical coordinates, $R,z,\phi$ using equation(?):
-
-\begin{eqnarray}
-R & = & \sqrt{x^2 + y^2} \\ \nonumber
-\phi & = & \arctan(\frac{y}{x})  \\ \nonumber
-z & = & z, \nonumber
-\end{eqnarray}
-
-We also need to have the initial velocities in cylindrical coordinates and if we have the initial coordinates in cartesian coordinates, they can easily be converted to cylindrical ones using equation (?):
-
-\begin{eqnarray}
-v_R & = & v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber 
-v_T & = & -v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber
-v_z & = &  v_z,  \nonumber
-\end{eqnarray}
 
 \texttt{galpy} also takes the initial positions and velocities in observed coordinates, right ascension and declination and distance to the stream and also the velocities in these coordinates.
 We can also initialize orbit such that the returned quantities are in physical units.
