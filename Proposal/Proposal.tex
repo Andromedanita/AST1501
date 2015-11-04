@@ -47,18 +47,68 @@ These streams are derived from progenitors with lower mass than that of the Sgr 
 The difficulty in modelling the streams is that they do not follow a single orbit and this makes it hard to know which fitting of orbits is the best. We can fit more than one single orbit to the streams but it would be computationally expensive which has led to the assumption of fitting one single orbit to the streams. (ref Bovy 2014)
 The best kind of streams to help us constrain the potential of Milky Way is a thin one that extends largely on the sky since it allows for accurate modelling if the stream orbit.
 
-Grillmair Dionatos or GD-1 is a cold thin stream that is $63^{\circ}$ long on the sky. It is suggested that it is generated from a globular cluster. It is located at  (insert ~) $10 kpc$ from the Sun and (insert ~) $ 15 kpc$ from the Galactic center.(ref Koposov 2010)
+Grillmair Dionatos or GD-1 is a cold thin stream that is $63^{\circ}$ long on the sky. It is suggested that it is generated from a globular cluster but there is no progenitor remnant to confirm this suggestion. It is located at  (insert ~) $10 kpc$ from the Sun and (insert ~) $ 15 kpc$ from the Galactic centre.(ref Koposov 2010)
 There might exist some gaps in the observation data of the tidal streams which could be due to existence of dark matter sub halos, so studying these could help us understand where these dark matter sub halos are and to study the structure of them. But this gap could also be due to the dynamics of the stars in the stream. (ref Bovy 2014)
 
 A large number of dark matter sub halos reside within the Milky Way galaxy. Since dark matter does not interact with photos, its not visible to eye and we need indirect ways to confirm its existence. Using streams would help us study these sub halos. Occasionally, there are mysterious gaps in the stellar streams and this might happen when the stream passes behind a dark matter sub halo. 
 
 
+At a distance of about 8.5 kph, the stream is moving per perpendicular to the line of sight with the velocity of 220 km/s.
+
+A very thin and long stellar stream is the best kind for constraining the galaxy potential since it allows for precise orbital models. (ref koposov 2010). If the stream is very thing, we can make the assumption that the stellar streams are moving along the same orbit even though in general the stars have different energies and angular momentum. (ref koposov 2010)
+
+
+
+
 \section{Current Tools}
 I will be using \texttt{galpy} which is a Python package written for galactic dynamics calculations. \texttt{galpy} includes a vast number of functions including different galactic potentials and integrations methods. There are different types of potentials such as one, two and three dimensional potentials which the latter is the more realistic one. 
-\\ The units in galpy are not physical units. \texttt{galpy} uses natural units that ensures that the circular velocity is one at a cylindrical radius of one and height of zero. (cite galpy paper). So in order to convert to physical units, one needs to multiply the output by the actual values. for instance, one needs to multiply position by $8 \, kpc$ and the velocity by $220 \, kms^{-1}$ in a model where the Sun is assumed to be at $8 \, kpc $ from the Galactic centre and has the circular velocity of $220 \, kms^{-1}$.
+\\ The units in \texttt{galpy} are not physical units. \texttt{galpy} uses natural units that ensures that the circular velocity is one at a cylindrical radius of one and height of zero. (cite galpy paper). So in order to convert to physical units, one needs to multiply the output by the actual values. for instance, one needs to multiply position by $8 \, kpc$ and the velocity by $220 \, kms^{-1}$ in a model where the Sun is assumed to be at $8 \, kpc $ from the Galactic centre and has the circular velocity of $220 \, kms^{-1}$.
+
+
+
+
+\section{Method}
+
+\subsection{Orbit Fitting}
+As mentioned previously, the goal of this project is to constrain the potential of the Milky Way using the GD-1 stream data. To begin, we assume a single-component potential known as flattened logarithmic potential for the Milky Way. This potential is given by equation {}:
+
+\begin{equation}
+\Phi(x,y,z) = \frac{V_c^2}{2} \, \mathrm{ln} ({x}^2 + y^2 + (\frac{z}{q_{\Phi}})^2),
+\end{equation}
+where $V_c$ represents the circular velocity and $q_{\Phi}$ shows the flattening parameter. We can initialize this potential using \texttt{galpy} in the following way:
+
+\begin{verbatim}
+from   galpy  import potential
+p = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
+\end{verbatim}
+
+We then need to initialize the orbit. For initializing the orbit, we need to have initial conditions which are the initial position and velocity components of the stream. The orbit can be initialized in \texttt{galpy} in the following way:
+
+\begin{verbatim}
+o = Orbit(vxvv=[R,vR,vT,z,vZ,phi],ro=ro,vo=vo)
+\end{verbatim}
+where ro and vo are the distance to and the velocity of the stream, respectively. The initial conditions passed to \texttt{galpy} need to be in cylindrical coordinates. However, we can also pass observed quantities such as the right ascension and declination to the function so that it would be:
+
+\begin{verbatim}
+o = Orbit(vxvv=[Ra,Dec,distance,pmRa,pmDec,vlos],ro=ro,vo=vo)
+\end{verbatim}
+where pmRa is the proper motion in right ascension direction ($\mu_{\alpha}$), pmDec is the proper motion in the declination direction ($\mu_{\delta}$) and vlos is the line-of-sight velocity ($V_{los}$).
+
+\subsection{Likelihood}
+
+
+
+
+
+
+
+
+
 
 \subsection{Coordinate transformations}
 In order to initialize stream orbit in \texttt{galpy}, we need to have the initial conditions in cylindrical coordinates. So we will be using a lot of coordinate transformations from stream coordinates to the cylindrical coordinates. One way to do so is to convert the stream coordinates to equaltorial coordinates, $\alpha$ and $\delta$ using equation (?):
+
+
 
 \begin{equation}
 \begin{bmatrix}
@@ -107,7 +157,7 @@ We can also initialize orbit such that the returned quantities are in physical u
 
 
 
-\section{Method}
+
 \subsection{Likelihood}
 We can calculate the likelihood as the probability of getting a y-value at an x-value given a model. In our case, we will consider likelihood as the probability of getting $\phi_2$ at a $\phi_1$ given a model at a given time. In other words, $\mathcal{L} \propto P(\phi_2 \, at \, \phi_1 | \mathrm{model \, at \, time \, t})$.
 The likelihood can also be written as:
@@ -119,13 +169,7 @@ ln \mathcal{L} & = & - \frac{\chi^2}{2} =  \Sigma \frac{(x_{model,i}-x_{data,i})
 \end{eqnarray }
 where $i$ represents each of the data points and $\sigma_i$ is the associated error. We take the sum since we do not have infinite time steps. Also, we need to integrate over time since we do not know the time the data has been taken and we only take an average of it.
 
-\subsection{Brief look at galpy}
-We can get the potential from galpy using the code below:
 
-\begin{verbatim}
-from   galpy  import potential
-p = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
-\end{verbatim}
 
 where q is the potential flattening and normalizations makes sure that the circular velocity is 1 at R=1 kpc.
 
