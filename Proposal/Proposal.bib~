@@ -61,22 +61,3 @@ archivePrefix = "arXiv",
    adsurl = {http://adsabs.harvard.edu/abs/2014ApJ...795...95B},
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
-
-
-@ARTICLE{Fellhauer2006,
-   author = {{Fellhauer}, M. and {Belokurov}, V. and {Evans}, N.~W. and {Wilkinson}, M.~I. and 
-	{Zucker}, D.~B. and {Gilmore}, G. and {Irwin}, M.~J. and {Bramich}, D.~M. and 
-	{Vidrih}, S. and {Wyse}, R.~F.~G. and {Beers}, T.~C. and {Brinkmann}, J.
-	},
-    title = "{The Origin of the Bifurcation in the Sagittarius Stream}",
-  journal = {\apj},
-   eprint = {astro-ph/0605026},
- keywords = {Galaxies: Dwarf, galaxies: individual (Sgr dSph), Galaxy: Halo, Galaxy: Structure},
-     year = 2006,
-    month = nov,
-   volume = 651,
-    pages = {167-173},
-      doi = {10.1086/507128},
-   adsurl = {http://adsabs.harvard.edu/abs/2006ApJ...651..167F},
-  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}

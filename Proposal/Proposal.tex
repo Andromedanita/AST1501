@@ -1,29 +1,16 @@
 \documentclass[preprint]{aastex}
-\usepackage[utf8]{inputenc}
-\usepackage{rotating}
-\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
-\usepackage{graphicx}
-\usepackage{setspace}
-\usepackage[cdot,mediumqspace,]{SIunits}
-\usepackage{hyperref}
 \usepackage{mathtools}
-\usepackage{url}
 \usepackage{authblk}
-\usepackage{placeins}
-\usepackage{float}
 \usepackage{natbib}
-\usepackage{multirow}
-\usepackage{amsmath}
+
+\bibliographystyle{apj}
 
 \title{Dynamics of the Stellar Streams to constrain Milky Way potential}
 \affil{\small {Anita Bahmanyar}}
-\affil{\small {Student Number: 998909098}}
 \affil{\small {bahmanyar@astro.utoronto.ca}}
 \affil{\small {Supervised by: Prof. Jo Bovy}}
 \affil{\small {Department of Astronomy and Astrophysics, University of Toronto}}
 \date{}
-
-\usepackage{graphicx}
 
 \begin{document}
 
@@ -36,20 +23,21 @@ We fit an orbit to the stream using a specific form of potential that best descr
 \maketitle
 
 \section{Introduction}
-Stars in satellite galaxies and clusters get tidally disrupted by their host galaxy as they orbit around it. (ref koposov) The orbit of the tidally disrupted stars is close to that of their progenitor, extending ahead and beyond, making a tail shape. (ref Bowden 2015)
-Understanding the physics of these stream orbits help us study the structure of the host galaxy and the shape of galactic halo as well as to constrain its potential. Tidal streams can also give us information about the large- and small-scale structure of the Milky Way halo's density distribution. (ref Bovy 2014)
-%\citep{koposov}
-
-There are a number of streams detected within our Milky Way galaxy which could help us constrain the potential of the Milky Way. The most famous example of such case is Saguttarius (Sgr) dwarf galaxy that has been discovered in 1994. The nucleus of the Sgr has survived for many orbits around the Galaxy, while its tidal tails have now been detected over a full $360^{\circ}$ on the sky and provides a strong constraint on the Galaxy’s halo. (ref Fellhauer 2006) 
+Stars in satellite galaxies and clusters get tidally disrupted by their host galaxy as they orbit around it. The orbit of the tidally disrupted stars is close to that of their progenitor, extending ahead and beyond, making a tail shape. \citep{Bowden2015} Understanding the physics of these stream orbits help us study the structure of the host galaxy and the shape of galactic halo as well as to constrain its potential. Tidal streams can also give us information about the large- and small-scale structure of the Milky Way halo's density distribution. \citep{Bovy2014}
+The study of stellar streams date back to 1998 when (ref Johnston) first had a paper on the topic after the discovery of the first lengthy stellar stream. 
+There are a number of streams detected within our Milky Way galaxy which could help us constrain the potential of the Milky Way. The most famous example of such case is Saguttarius (Sgr) dwarf galaxy that has been discovered in 1994. (ref Ibata, Gilmore & Irwin 1994) The nucleus of the Sgr has survived for many orbits around the Galaxy, while its tidal tails have now been detected over a full $360^{\circ}$ on the sky and provides a strong constraint on the Galaxy’s halo. \citep{Fellhauer2006} 
 Some of the other detected streams in Milky Way galaxy are Grillmair Dionatos (GD-1) stream, Orphan stream and NGC5466 stream. 
-These streams are derived from progenitors with lower mass than that of the Sgr stream so they will be easier to model. (ref Bowden 2015)
-The difficulty in modelling the streams is that they do not follow a single orbit and this makes it hard to know which fitting of orbits is the best. We can fit more than one single orbit to the streams but it would be computationally expensive which has led to the assumption of fitting one single orbit to the streams. (ref Bovy 2014)
+These streams are derived from progenitors with lower mass than that of the Sgr stream so they will be easier to model. \citep{Bowden2015}
+The difficulty in modelling the streams is that they do not follow a single orbit and this makes it hard to know which fitting of orbits is the best. We can fit more than one single orbit to the streams but it would be computationally expensive which has led to the assumption of fitting one single orbit to the streams.  \citep{Bovy2014}
 The best kind of streams to help us constrain the potential of Milky Way is a thin one that extends largely on the sky since it allows for accurate modelling of the stream orbit.
 
-GD-1 is a cold thin stream that is $63^{\circ}$ long on the sky. It is suggested that it is generated from a globular cluster but there is no progenitor remnant to confirm this hypothesis. It is located at $\sim 8.5$ kpc from the Sun and $ \sim15$ kpc from the Galactic centre and is moving per perpendicular to the line of sight with the velocity of 220 km/s..(ref Koposov 2010) A very thin and long stellar stream is the best kind for constraining the galaxy potential since it allows for precise orbital models. (ref koposov 2010). If the stream is very thin, we can make the assumption that the stellar streams are moving along the same orbit even though in general the stars have different energies and angular momentum. (ref koposov 2010)
+GD-1 is a cold thin stream that is $63^{\circ}$ long on the sky. It is suggested that it is generated from a globular cluster but there is no progenitor remnant to confirm this hypothesis. It is located at $\sim 8.5$ kpc from the Sun and $ \sim15$ kpc from the Galactic centre and is moving per perpendicular to the line of sight with the velocity of 220 km/s.\citep{koposov} A very thin and long stellar stream is the best kind for constraining the galaxy potential since it allows for precise orbital models. \citep{koposov}. If the stream is very thin, we can make the assumption that the stellar streams are moving along the same orbit even though in general the stars have different energies and angular momentum. \citep{koposov}
+
+A large number of dark matter sub halos reside within the Milky Way galaxy. Since dark matter does not interact with photos, we need indirect ways to confirm its existence. Using streams would help us study these sub halos. Occasionally, there are mysterious gaps in the stellar streams that could indicate existence of dark matter sub halos when the stream passes behind them.  \citep{Bovy2014}
 
 
-A large number of dark matter sub halos reside within the Milky Way galaxy. Since dark matter does not interact with photos, we need indirect ways to confirm its existence. Using streams would help us study these sub halos. Occasionally, there are mysterious gaps in the stellar streams that could indicate existence of dark matter sub halos when the stream passes behind them. (ref Bovy 2014)
+Several globular clusters are known to have excess unbound stars outside their tidal radii (ref Johnston)
+
 
 
 In section 2, I will describe current tools we have and in section 3 I will discuss how the orbit fitting to the streams is done and in section 4 I will present the timeline for this project.
@@ -59,56 +47,22 @@ I will be using \texttt{galpy} which is a Python package written for galactic dy
 \\ The units in \texttt{galpy} are in natural units that ensures the circular velocity is one at a cylindrical radius of one and height of zero. (cite galpy paper). One needs to multiply the output by the actual values to convert to physical units. For instance, position and velocity should be multiplied by $8.5 \, kpc$ and $220 \, kms^{-1}$, respectively  in a model where the Sun is assumed to be at $8.5 \, kpc $ from the Galactic centre and has the circular velocity of $220 \, kms^{-1}$.
 
 
+\section{Data}
+We will be using the GD-1 stellar stream data. It is a combination of the Sloan Digital Sky survey (SDSS) and Calar Alto spectroscopy and it includes position of the stream, radial velocity, proper motion and distance of the stream that is given in tables 1-4 in \citet{koposov}. The stream positions are given in stream coordinates $\phi_1$ and $\phi_2$ which is a rotated coordinate system where it is approximately aligned with the stream. $\phi_1$ and $\phi_2$ represent the longitude and latitude of the stream, respectively. The proper motions are also given in stream coordinate. It will be shown in the following sections how to convert from observed coordinates to the stream coordinates.
 
 
 \section{Method}
 
 \subsection{Orbit Fitting}
 %As mentioned previously, the goal of this project is to constrain the potential of the Milky Way using the GD-1 stream data. 
-To begin, we assume a single-component potential known as flattened logarithmic potential for the Milky Way. This potential is given by equation \ref{eq:logPotential}:
+To begin, we assume a single-component potential known as flattened logarithmic potential for the Milky Way. This potential is given by equation (\ref{eq:logPotential}):
 
 \begin{equation} \label{eq:logPotential}
-\Phi(x,y,z) = \frac{V_c^2}{2} \, \mathrm{ln} ({x}^2 + y^2 + (\frac{z}{q_{\Phi}})^2),
+\Phi(x,y,z) = \frac{V_c^2}{2} \, \mathrm{ln} \left ({x}^2 + y^2 + (\frac{z}{q_{\Phi}})^2 \right ),
 \end{equation}
-where $V_c$ represents the circular velocity and $q_{\Phi}$ shows the flattening parameter. We can initialize this potential using \texttt{galpy} in the following way:
+where $V_c$ represents the circular velocity and $q_{\Phi}$ shows the flattening parameter. 
 
-\begin{verbatim}
-from   galpy  import potential
-p = potential.LogarithmicHaloPotential(q=0.9,normalize=1)
-\end{verbatim}
-
-We then need to initialize the orbit. For initializing the orbit, we need to have initial conditions which are the initial position and velocity components of the stream. The orbit can be initialized in \texttt{galpy} in the following way:
-
-\begin{verbatim}
-o = Orbit(vxvv=[R,vR,vT,z,vZ,phi],ro=ro,vo=vo)
-\end{verbatim}
-where ro and vo are the distance to and the velocity of the stream, respectively. The initial conditions passed to \texttt{galpy} need to be in cylindrical coordinates. However, we can also pass observed quantities such as the right ascension and declination to the function so that it would be:
-
-\begin{verbatim}
-o = Orbit(vxvv=[Ra,Dec,distance,pmRa,pmDec,vlos],ro=ro,vo=vo)
-\end{verbatim}
-where pmRa is the proper motion in right ascension direction ($\mu_{\alpha}$), pmDec is the proper motion in the declination direction ($\mu_{\delta}$) and vlos is the line-of-sight velocity ($V_{los}$).
-
-Once we have the orbit initialized, we can integrate it so get the orbital properties at any given time. These properties include the position, velocity, proper motion, distance, energy and a lot more.
-
-We will be using the GD-1 stellar stream to constrain the potential and the initial conditions of this stream are given in Cartesian coordinates ($x,y,z$), so we need to convert the initial position and velocity components to be in cylindrical coordinates ($R,z,\phi$) to be able to initialize the orbit. This can simply be done by equations \ref{eq:cart_to_cyl} and \ref{eq:vcart_to_cyl} below:
-
-\begin{eqnarray} \label{eq:cart_to_cyl}
-R & = & \sqrt{x^2 + y^2} \\ \nonumber
-\phi & = & \arctan(\frac{y}{x})  \\ \nonumber
-z & = & z, \nonumber
-\end{eqnarray}
-
-and 
-
-\begin{eqnarray} \label{eq:vcart_to_cyl}
-v_R & = & v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber 
-v_T & = & -v_x  \cos(\phi) + v_y  cos(\phi) \\ \nonumber
-v_z & = &  v_z,  \nonumber
-\end{eqnarray}
-
-
-From orbit integration, we get the proper motion of the stream in Galactic coordinates ($l,b,d$). We also want to have the proper motion of the stream in the stream coordinates ($\mu_{\phi_1},\mu_{\phi_2},V_{los}$). This transformation can be done using equation \ref{eq:proper_lb_phi12}:
+For initializing the orbit, we need to have initial conditions which are the initial position and velocity components of the stream. We also need the distance to and the velocity of the stream. Once we have the orbit initialized, we can integrate it so get the orbital properties at any given time. These properties include the position, velocity, proper motion, distance, energy and a lot more. From orbit integration, we get the proper motion of the stream in Galactic coordinates ($l,b,d$). We also want to have the proper motion of the stream in the stream coordinates ($\mu_{\phi_1},\mu_{\phi_2},V_{los}$). This transformation can be done using equation \ref{eq:proper_lb_phi12}:
 
 \begin{equation}  \label{eq:proper_lb_phi12}
 \begin{bmatrix}
@@ -153,23 +107,7 @@ where the matrices R, T and A are defined below by equations \ref{eq:R}, \ref{eq
 \end{equation}
 
 
-\subsection{Likelihood}
-We can calculate the likelihood as the probability of getting a y-value at an x-value given a model. In our case, we will consider likelihood as the probability of getting $\phi_2$ at a $\phi_1$ given a model at a given time, $\mathcal{L} \propto P(\phi_2 \, at \, \phi_1 | \mathrm{model \, at \, time \, t})$.
-The log likelihood can be written as:
-
-\begin{eqnarray}
-ln \mathcal{L} & = & - \frac{\chi^2}{2} =  \Sigma \frac{(x_{model,i}-x_{data,i})^2}{2\sigma_i^2} \\ \nonumber
-\mathcal{L}  & \propto & \int \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} - \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}} dt  \\ \nonumber
-\mathcal{L}  & \propto & \sum_i \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} - \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}},  \nonumber
-\end{eqnarray }
-where $i$ represents each of the data points and $\sigma_i$ is the associated error. We need to integrate over time to get an average value since we do not know the time the data has been taken.
-
-
-
-\subsection{Coordinate transformations}
-One way to do so is to convert the stream coordinates to equatorial coordinates, $\alpha$ and $\delta$ using equation \ref{eq:phi12}:
-
-
+We can convert the stream coordinates to equatorial coordinates, $\alpha$ and $\delta$ using equation \ref{eq:phi12}:
 
 \begin{equation} \label{eq:phi12}
 \begin{bmatrix}
@@ -184,35 +122,29 @@ One way to do so is to convert the stream coordinates to equatorial coordinates,
 \end{bmatrix}
 \end{equation}
 
+\subsection{Likelihood}
+We can calculate the likelihood as the probability of getting a y-value at an x-value given a model. In our case, we will consider likelihood as the probability of getting $\phi_2$ at a $\phi_1$ given a model at a given time, $\mathcal{L} \propto P(\phi_2 \, at \, \phi_1 | \mathrm{model \, at \, time \, t})$.
+The log likelihood can be written as:
 
-%\begin{eqnarray}
-%x & = & \cos(\delta) \cos(\alpha) \\ \nonumber
-%y & = & \cos(\delta) \sin(\alpha)  \\ \nonumber
-%z & = & \sin(\alpha) \\ \nonumber 
-%\end{eqnarray}
+\begin{eqnarray}
+ln \mathcal{L} & = & - \frac{\chi^2}{2} =  \Sigma \frac{(x_{model,i}-x_{data,i})^2}{2\sigma_i^2} \\ \nonumber
+\mathcal{L}  & \propto & \int \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} - \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}} dt  \\ \nonumber
+\mathcal{L}  & \propto & \sum_i \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} - \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}},  \nonumber
+\end{eqnarray }
+where $i$ represents each of the data points and $\sigma_i$ is the associated error. We need to integrate over time to get an average value since we do not know the time the data has been taken.
 
-
-We can get a lot of variables out from the initialized orbit including the stream orbit in Galactic and equatorial coordinates, proper motions in the same coordinates, the distance and a lot more.
-
-
-The data which is a combination of the Sloan Digital Sky survey (SDSS) and Calar Alto spectroscopy.comes from tables 1-4 in and includes position of the stream in stream coordinates, radial velocity, proper motion and distance of the stream.(ref Koposov 2010). 
 
 \section{Timeline}
 \begin{itemize}
 \item Fitting orbit to the GD-1 stream and calculating parameter likelihood by the end of November
-\item by the end of December
-\item by the end of January
-\item by the end of February
+\item Fit stream model for fixed a potential by the end of December
+\item Fit stream model for a varying potential by the end of January
+\item Look at different potential families by the end of February
 \item Wrapping up and writing final report by the end of March
 \end{itemize}
 
+\bibliography{Proposal}
 
-%\begin{thebibliography}{}
-%\bibitem[James et al.(1991)]{jam91} James, H. ...
-%\end{thebibliography}
-
-%\bibliographystyle{apj}
-%\bibliography{Proposal.bib}
 \end{document}
 
 
