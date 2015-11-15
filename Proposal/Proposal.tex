@@ -16,6 +16,8 @@
 \newcommand{\kpc}{\mathrm{kpc}}
 \newcommand{\kms}{\mathrm{kms^{-1}}}
 
+
+
 \begin{document}
 
 
@@ -44,6 +46,7 @@ In section 2, I will describe current tools we have and  in section 3 the data w
 
 \section{Current Tools}
 I will be using \texttt{galpy} which is a Python package written for galactic dynamics calculations. \texttt{galpy} includes a vast number of functions including different galactic potentials and integration methods. There are different types of potentials, single-component logarithmic being one.
+
 \\ The units in \texttt{galpy} are in natural units that ensures the circular velocity is one at a cylindrical radius of one and height of zero. \citep{galpy2015} One needs to multiply the output by the actual values to convert to physical units. For instance, position and velocity should be multiplied by $8.5 \, \kpc$ and $220 \, \kms$, respectively  in a model where the Sun is assumed to be at $8.5 \, \kpc $ from the Galactic centre and has the circular velocity of $220 \, \kms$.
 
 
@@ -58,11 +61,14 @@ We will be using the GD-1 stellar stream data which is a combination of the Sloa
 To begin, we assume a single-component potential known as flattened logarithmic potential for the Milky Way. This potential is given by equation (\ref{eq:logPotential}):
 
 \begin{equation} \label{eq:logPotential}
-\Phi(x,y,z) = \frac{V_c^2}{2} \, \mathrm{ln} \left ({x}^2 + y^2 + (\frac{z}{q_{\Phi}})^2 \right ),
+\Phi(x,y,z) = \frac{V_c^2}{2} \, \mathrm{ln} \left ({x}^2 + y^2 + \left ( \frac{z}{q_{\Phi}}\right )^2 \right ),
 \end{equation}
 where $V_c$ represents the circular velocity and $q_{\Phi}$ shows the flattening parameter. 
 
-For initializing the orbit, we need to have initial conditions which are the initial position and velocity components of the stream. We also need the distance to and the velocity of the stream. Once we have the orbit initialized, we can integrate it so get the orbital properties at any given time. These properties include the position, velocity, proper motion, distance, energy and a lot more. From orbit integration, we get the proper motion of the stream in Galactic coordinates ($l,b,d$). We also want to have the proper motion of the stream in the stream coordinates ($\mu_{\phi_1},\mu_{\phi_2},V_{los}$). This transformation can be done using equation (\ref{eq:proper_lb_phi12}):
+For initializing the orbit, we need to have initial conditions which are the initial position and velocity components of the stream. We also need the distance to and the velocity of the stream. Once we have the orbit initialized, we can integrate it so get the orbital properties at any given time. These properties include the position, velocity, proper motion, distance, energy and a lot more. 
+
+\begin{comment}
+From orbit integration, we get the proper motion of the stream in Galactic coordinates ($l,b,d$). We also want to have the proper motion of the stream in the stream coordinates ($\mu_{\phi_1},\mu_{\phi_2},V_{los}$). This transformation can be done using equation (\ref{eq:proper_lb_phi12}):
 
 \begin{equation}  \label{eq:proper_lb_phi12}
 \begin{bmatrix}
@@ -97,6 +103,7 @@ where the matrices R, T and A are defined below by equations (\ref{eq:R}), (\ref
 \end{bmatrix}
 \end{equation}
 
+
 \begin{equation} \label{eq:A}
 \mathrm{A} = 
 \begin{bmatrix}
@@ -105,7 +112,9 @@ where the matrices R, T and A are defined below by equations (\ref{eq:R}), (\ref
 \sin(\delta)  &  0 & \cos(\delta) 
 \end{bmatrix}
 \end{equation}
+\end{comment}
 
+An application of fitting an orbit to the GD-1 stream data is shown in Figure (1), where we have used initial conditions of the stream to predict the orbit at later times.
 
 %We can convert the stream coordinates to equatorial coordinates, $\alpha$ and $\delta$ using equation (\ref{eq:phi12}):
 
@@ -123,16 +132,24 @@ where the matrices R, T and A are defined below by equations (\ref{eq:R}), (\ref
 %\end{equation}
 
 \subsection{Likelihood}
-We can calculate the likelihood as the probability of getting a y-value at an x-value given a model. In our case, we will consider likelihood as the probability of getting $\phi_2(t)$ at a $\phi_1$ given a model, $\mathcal{L} \propto P(\phi_2 \, at \, \phi_1 | \mathrm{model \, at \, time \, t})$.
-The log likelihood can be written as:
+%We can calculate the likelihood as the probability of getting a y-value at an x-value given a model. In our case, we will consider likelihood as the probability of getting $\phi_2(t)$ at a $\phi_1$ given a model, $\mathcal{L} \propto P(\phi_2 \, at \, \phi_1 | \mathrm{model \, at \, time \, t})$.
 
-\begin{eqnarray}
+We can calculate the likelihood as the probability of getting a y-value at an x-value given a model. In our case, we will consider likelihood as the probability of getting $\phi_2(t)$, distance(t), $V_{rad}(t)$  or $\mu(t)$ at a specific $\phi_1$ given a model, which corresponds to  $\mathcal{L} \propto P((\phi_2, d, V_{rad} \, \mathrm{or} \, \mu) \, at \, \phi_1 | \mathrm{model \, at \, time \, t})$.
+The log likelihood for the case of $\phi_2$ can be written as:
+\begin{eqnarray} \label{eq:likelihood}
 \mathcal{L}  & \propto & \int \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} + \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}} dt  \\ \nonumber
-\mathcal{L}  & \propto & \sum_i \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} + \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}} \\ \nonumber
-\ln \mathcal{L} & = & - \frac{\chi^2}{2} =  \prod_i \frac{(x_{model,i}-x_{data,i})^2}{2\sigma_i^2} \\ \nonumber
-\end{eqnarray }
-where $i$ represents each of the data points and $\sigma_i$ is the associated error. We need to integrate over time to get an average value since we do not know the time the data has been taken.
-
+\mathcal{L}  & \propto & \sum_i \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} + \frac{-(\phi_2(t) - {\phi_2^{obs}})^2}{2\sigma_2^2}}.  \nonumber \\ \nonumber
+\end{eqnarray}
+We need to integrate over time to get an average value since we do not know the time the data has been taken but since we do not have an infinite number of times, we will only take the sum.
+We can write the same expression as in equation (\ref{eq:likelihood}) for $d, V_{rad}$ and $\mu$.  This is shown for $V_{rad}$ in equation (\ref{eq:likelihood}):
+\begin{equation}
+\mathcal{L}  & \propto & \sum_i \exp^{\frac{-(\phi_1(t) - {\phi_1^{obs}})^2}{2\sigma_1^2} + \frac{-(V_{rad}(t) - {V_{rad}^{obs}})^2}{2\sigma_2^2}} 
+\end{equation}
+In general we can write:
+\begin{equation}
+\ln (\mathcal{L}) & = & - \frac{\chi^2}{2 } =  \prod_i \frac{(x_{model,i}-x_{data,i})^2}{2\sigma_i^2},
+\end{equation}
+where $i$ represents each of the data points and $\sigma_i$ is the associated error. This means that we need to multiply the log-likelihood value of each point to get a total likelihood value.
 
 \section{Timeline}
 \begin{itemize}
@@ -142,6 +159,16 @@ where $i$ represents each of the data points and $\sigma_i$ is the associated er
 \item Look at different potential families by the end of February
 \item Wrapping up and writing final report by the end of March
 \end{itemize}
+
+\newpage
+
+\FloatBarrier
+\begin{figure}[H] \label{label:fig1}
+\centering
+\includegraphics[scale=0.5]{Table2.png}
+\caption{\textit{Left:}This plot shows the values of $\phi_2$ vs. $\phi_1$. The red dots represent the GD-1 stream data as in \citet{koposov} tables along with the error bars on $\phi_2$. The error bars on the $\phi_1$ values are all the same and $1 ^\circ{}$. The black curve is the fitted orbit to the stream using \texttt{galpy} and the stream initial conditions. \textit{Right:} Represents the $\chi^2$ value obtained from calculating the log-likelihood of the $\phi_2$ and $\phi_1$ values using equation (\ref{eq:likelihood}).}
+\end{figure}
+\FloatBarrier
 
 \bibliography{Proposal}
 
