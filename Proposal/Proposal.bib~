@@ -45,6 +45,43 @@ archivePrefix = "arXiv",
 }
 
 
+
+
+
+@ARTICLE{Fellhauer2006,
+   author = {{Fellhauer}, M. and {Belokurov}, V. and {Evans}, N.~W. and {Wilkinson}, M.~I. and 
+	{Zucker}, D.~B. and {Gilmore}, G. and {Irwin}, M.~J. and {Bramich}, D.~M. and 
+	{Vidrih}, S. and {Wyse}, R.~F.~G. and {Beers}, T.~C. and {Brinkmann}, J.
+	},
+    title = "{The Origin of the Bifurcation in the Sagittarius Stream}",
+  journal = {\apj},
+   eprint = {astro-ph/0605026},
+ keywords = {Galaxies: Dwarf, galaxies: individual (Sgr dSph), Galaxy: Halo, Galaxy: Structure},
+     year = 2006,
+    month = nov,
+   volume = 651,
+    pages = {167-173},
+      doi = {10.1086/507128},
+   adsurl = {http://adsabs.harvard.edu/abs/2006ApJ...651..167F},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+
+
+@ARTICLE{Ibata1994,
+   author = {{Ibata}, R.~A. and {Gilmore}, G. and {Irwin}, M.~J.},
+    title = "{A dwarf satellite galaxy in Sagittarius}",
+  journal = {\nat},
+     year = 1994,
+    month = jul,
+   volume = 370,
+    pages = {194-196},
+      doi = {10.1038/370194a0},
+   adsurl = {http://adsabs.harvard.edu/abs/1994Natur.370..194I},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+
 @ARTICLE{Bovy2014,
    author = {{Bovy}, J.},
     title = "{Dynamical Modeling of Tidal Streams}",
@@ -63,20 +100,19 @@ archivePrefix = "arXiv",
 }
 
 
-@ARTICLE{Fellhauer2006,
-   author = {{Fellhauer}, M. and {Belokurov}, V. and {Evans}, N.~W. and {Wilkinson}, M.~I. and 
-	{Zucker}, D.~B. and {Gilmore}, G. and {Irwin}, M.~J. and {Bramich}, D.~M. and 
-	{Vidrih}, S. and {Wyse}, R.~F.~G. and {Beers}, T.~C. and {Brinkmann}, J.
-	},
-    title = "{The Origin of the Bifurcation in the Sagittarius Stream}",
-  journal = {\apj},
-   eprint = {astro-ph/0605026},
- keywords = {Galaxies: Dwarf, galaxies: individual (Sgr dSph), Galaxy: Halo, Galaxy: Structure},
-     year = 2006,
-    month = nov,
-   volume = 651,
-    pages = {167-173},
-      doi = {10.1086/507128},
-   adsurl = {http://adsabs.harvard.edu/abs/2006ApJ...651..167F},
+@ARTICLE{galpy2015,
+   author = {{Bovy}, J.},
+    title = "{galpy: A python Library for Galactic Dynamics}",
+  journal = {\apjs},
+archivePrefix = "arXiv",
+   eprint = {1412.3451},
+ keywords = {galaxies: general, galaxies: kinematics and dynamics, Galaxy: fundamental parameters },
+     year = 2015,
+    month = feb,
+   volume = 216,
+      eid = {29},
+    pages = {29},
+      doi = {10.1088/0067-0049/216/2/29},
+   adsurl = {http://adsabs.harvard.edu/abs/2015ApJS..216...29B},
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }

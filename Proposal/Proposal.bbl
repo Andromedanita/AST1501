@@ -4,7 +4,7 @@
 \bibitem[{{Bovy}(2014)}]{Bovy2014}
 {Bovy}, J. 2014, \apj, 795, 95
 
-\bibitem[{{Bovy}(2015)}]{galpy}
+\bibitem[{{Bovy}(2015)}]{galpy2015}
 ---. 2015, \apjs, 216, 29
 
 \bibitem[{{Bowden} {et~al.}(2015){Bowden}, {Belokurov}, \&
@@ -16,10 +16,16 @@
   {Beers}, \& {Brinkmann}}]{Fellhauer2006}
 {Fellhauer}, M., {Belokurov}, V., {Evans}, N.~W., {et~al.} 2006, \apj, 651, 167
 
+\bibitem[{{Grillmair} \& {Dionatos}(2006)}]{GD2006}
+{Grillmair}, C.~J., \& {Dionatos}, O. 2006, \apjl, 643, L17
+
 \bibitem[{{Ibata} {et~al.}(1994){Ibata}, {Gilmore}, \& {Irwin}}]{Ibata1994}
 {Ibata}, R.~A., {Gilmore}, G., \& {Irwin}, M.~J. 1994, \nat, 370, 194
 
 \bibitem[{{Koposov} {et~al.}(2010){Koposov}, {Rix}, \& {Hogg}}]{koposov}
 {Koposov}, S.~E., {Rix}, H.-W., \& {Hogg}, D.~W. 2010, \apj, 712, 260
+
+\bibitem[{{Sanders} \& {Binney}(2013)}]{Sanders2013}
+{Sanders}, J.~L., \& {Binney}, J. 2013, \mnras, 433, 1813
 
 \end{thebibliography}
