@@ -444,7 +444,7 @@ def table4_kop2010():
 #                  Likelihood Function
 #----------------------------------------------------------
 
-def likelihood(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
+def likelihood_single(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
     
     """
     Parameters
@@ -483,6 +483,28 @@ def likelihood(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
     final_val  = simps(val,x=integ_var)
     
     return final_val
+
+
+def likelihood_all(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
+    
+    n       = len(x_model)
+    L_array = []
+    
+    for i in range(len(x_data)):
+        x_data_arr = np.ones(n) * x_data[i]
+        y_data_arr = np.ones(n) * y_data[i]
+
+        val_x      = np.exp((-((x_model-x_data_arr)**2))/(2.*(x_err[i]**2)))
+        val_y      = np.exp((-((y_model-y_data_arr)**2))/(2.*(y_err[i]**2)))
+        val        = val_x * val_y
+        final_val  = simps(val,x=integ_var)
+        L_array.append(final_val)
+
+    L_array = np.array(L_array)
+    
+    
+    return L_array
+
 
 
 def pmradec_to_pmlb(R,ra,dec,vr,vra,vdec):
