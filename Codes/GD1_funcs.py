@@ -502,8 +502,9 @@ def likelihood_all(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
 
     L_array = np.array(L_array)
     
+    L_final = np.prod(L_array)
     
-    return L_array
+    return L_final
 
 
 
