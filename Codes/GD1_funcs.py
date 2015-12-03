@@ -490,6 +490,7 @@ def likelihood_all(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
     n       = len(x_model)
     L_array = []
     
+    val_list = []
     for i in range(len(x_data)):
         x_data_arr = np.ones(n) * x_data[i]
         y_data_arr = np.ones(n) * y_data[i]
@@ -501,8 +502,37 @@ def likelihood_all(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
         L_array.append(final_val)
 
     L_array = np.array(L_array)
+    L_array = np.log(L_array)
+    L_final = np.sum(L_array)
     
-    L_final = np.prod(L_array)
+    return L_final
+
+
+def likelihood_all_test(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
+    
+    nm      = len(x_model) # length(model)
+    nd      = len(x_data)  # length(data)
+    L_array = []
+    
+    
+    x_data_tile  = np.tile(x_data,(nm,1))
+    y_data_tile  = np.tile(y_data,(nm,1))
+    x_model_tile = np.tile(x_model,(nd,1))
+    y_model_tile = np.tile(y_model,(nd,1))
+    
+    
+    x_err_tile   = np.tile(x_err,(nm,1))
+    y_err_tile   = np.tile(y_err,(nm,1))
+    
+    val_x_tile = np.exp((-((x_model_tile.T-x_data_tile)**2))/(2.*(x_err_tile**2)))
+    val_y_tile = np.exp((-((y_model_tile.T-y_data_tile)**2))/(2.*(y_err_tile**2)))
+    
+    val        = val_x_tile * val_y_tile
+    
+    final_val  = simps(val,integ_var,axis=0)
+    
+    L_array    = np.log(final_val)
+    L_final    = np.sum(L_array)
     
     return L_final
 
