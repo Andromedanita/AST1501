@@ -56,7 +56,7 @@ dict = {"Vc":220.,"q":0.9}
 ts   = 1000 # number of timesteps
 time = np.linspace(0.,1e1,ts)
 
-def optimizer_func(phi2,D,mu_phi1,mu_phi2,Vrad):
+def optimizer_func(input):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     
     '''
     Parameters
@@ -84,6 +84,11 @@ def optimizer_func(phi2,D,mu_phi1,mu_phi2,Vrad):
         D, proper motions in stream coordinates and 
         the radial velocity.
     '''
+    phi2    = input[0]
+    D       = input[1]
+    mu_phi1 = input[2]
+    mu_phi2 = input[3]
+    Vrad    = input[4]
     
     Vc = dict['Vc']
     q  = dict['q']
@@ -91,7 +96,7 @@ def optimizer_func(phi2,D,mu_phi1,mu_phi2,Vrad):
     # choose a value of phi2 for the given phi1 (phi1 should stay constant from
     # initial conditions obtained above in degrees
     
-    phi1i = phi12i[0]
+    phi1i = phi12i_kop[0]
     phi2i = phi2
     #phi2i = phi12i[1]
     
@@ -103,7 +108,7 @@ def optimizer_func(phi2,D,mu_phi1,mu_phi2,Vrad):
     
     # convert proper motion in phi1 and phi2 coordinates to
     # proper motion in Galactic (vl,vb) coordinate
-    vl,vb = pmphi12_to_pmllpmbb(mu_phi1, mu_phi2, phi1i, phi2i, degree = True)
+    vl,vb = mw.pmphi12_to_pmllpmbb(mu_phi1, mu_phi2, phi1i, phi2i, degree = True)
     
     # convert the vl, vb to proper motion in cartesian coordinate
     vxf, vyf, vzf  = bovy_coords.vrpmllpmbb_to_vxvyvz(Vrad, vl, vb, lf, bf, D, degree = True)
@@ -149,12 +154,64 @@ def optimizer_func(phi2,D,mu_phi1,mu_phi2,Vrad):
 
 
 
-def optimize(optimizer_func):
+
+def check_phi12_to_cylind(phi1,phi2, d, degree = False):
+    
+    '''
+    Parameters
+    ----------------------------------------------------
+        phi1 and phi2:
+            position in stream coordinates
+        
+        d:
+            distance in kpc
+        
+        
+    Return
+    ----------------------------------------------------
+        position in cylindrical coordinates
+    '''
+    
+    l, b          = mw.phi12_to_lb(phi1, phi2, degree)
+    x, y, z       = bovy_coords.lbd_to_XYZ(l, b, d, degree)
+    R, zcyl , phi = xyz_to_cyl(xf, yf, zf)
+    return np.array([R, zcyl, phi])
 
 
 
+def vxvyvz_to_pmphi12(x, y, z, vx, vy, vz, degree):
 
-    return
+    l, b, d      = bovy_coords.XYZ_to_lbd(x, y, z, degree = degree)
+    vr, vl, vb   = bovy_coords.vxvyvz_to_vrpmllpmbb(vx,vy,vz, l, b, d, degree = degree)
+    vphi1, vphi2 = mw.pmllpmbb_to_pmphi12(vl, vb, l, b, degree = degree)
+
+    return np.array([vphi1,vphi2]), vr
+
+
+
+mu_array,Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi_kop, True)
+
+
+bnds       = ((-90., 90.), (0., None), (None,None), (None,None), (None,None))
+init_guess = (phi12i_kop[1], 8.5, mu_array[0], mu_array[1], Vrad)
+blah       = sp.optimize.minimize(optimizer_func, init_guess, method = 'BFGS', bounds = bnds)
+
+
+
+'''
+### test #####
+
+def func(x,y,z):
+    return x+y+z
+
+
+init_guess = (2,3,4)
+bnds       = ((1,None),(0.5,None),(None,None))
+sp.optimize.minimize(func, init_guess, method = 'BFGS', bounds = bnds)
+'''
+
+
+
 
 
 

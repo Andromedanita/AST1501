@@ -176,3 +176,113 @@ def pmllpmbb_to_pmphi12(pmll,pmbb,l,b,degree=False):
     for ii in range(len(ra)):
         trans[:,:,ii]= numpy.dot(AphiInv[:,:,ii],TA[:,:,ii])[1:,1:]
     return (trans*numpy.array([[pmra,pmdec],[pmra,pmdec]])).sum(1).T
+
+
+
+@bovy_coords.scalarDecorator
+@bovy_coords.degreeDecorator([2,3],[])
+def pmphi12_to_pmllpmbb(pmphi1,pmphi2,phi1,phi2,degree=False):
+    """
+        NAME:
+        pmllpmbb_to_pmphi12
+        PURPOSE:
+        Transform proper motions in (phi1,phi2) to Galactic coordinates (l,b)
+        INPUT:
+        pmphi1 - proper motion Galactic longitude (rad or degree); contains xcosphi2
+        pmphi2 - Galactic latitude (rad or degree)
+        phi1 - phi longitude (rad or degree)
+        phi2 - phi latitude (rad or degree)
+        degree= (False) if True, input (phi1,phi2) are in degrees
+        OUTPUT:
+        (pmll,pmbb) for scalar input
+        [:,2] array for vector input
+        HISTORY:
+        2014-11-04 - Written - Bovy (IAS)
+        """
+    import numpy
+    
+    _TKOP= numpy.zeros((3,3))
+    _TKOP[0,:]= [-0.4776303088,-0.1738432154,0.8611897727]
+    _TKOP[1,:]= [0.510844589,-0.8524449229,0.111245042]
+    _TKOP[2,:]= [0.7147776536,0.4930681392,0.4959603976]
+    
+    #First go from phi12 to ra and dec
+    lb= phi12_to_lb(phi1,phi2)
+    radec= bovy_coords.lb_to_radec(lb[:,0],lb[:,1])
+    ra= radec[:,0]
+    dec= radec[:,1]
+    #Build A and Aphi matrices
+    AInv= numpy.zeros((3,3,len(ra)))
+    AInv[0,0]= numpy.cos(ra)*numpy.cos(dec)
+    AInv[0,1]= numpy.sin(ra)*numpy.cos(dec)
+    AInv[0,2]= numpy.sin(dec)
+    AInv[1,0]= -numpy.sin(ra)
+    AInv[1,1]= numpy.cos(ra)
+    AInv[1,2]= 0.
+    AInv[2,0]= -numpy.cos(ra)*numpy.sin(dec)
+    AInv[2,1]= -numpy.sin(ra)*numpy.sin(dec)
+    AInv[2,2]= numpy.cos(dec)
+    Aphi= numpy.zeros((3,3,len(ra)))
+    Aphi[0,0]= numpy.cos(phi1)*numpy.cos(phi2)
+    Aphi[0,1]= -numpy.sin(phi1)
+    Aphi[0,2]= -numpy.cos(phi1)*numpy.sin(phi2)
+    Aphi[1,0]= numpy.sin(phi1)*numpy.cos(phi2)
+    Aphi[1,1]= numpy.cos(phi1)
+    Aphi[1,2]= -numpy.sin(phi1)*numpy.sin(phi2)
+    Aphi[2,0]= numpy.sin(phi2)
+    Aphi[2,1]= 0.
+    Aphi[2,2]= numpy.cos(phi2)
+    TAphi= numpy.dot(_TKOP.T,numpy.swapaxes(Aphi,0,1))
+    #Got lazy...
+    trans= numpy.zeros((2,2,len(ra)))
+    for ii in range(len(ra)):
+        trans[:,:,ii]= numpy.dot(AInv[:,:,ii],TAphi[:,:,ii])[1:,1:]
+    pmradec= (trans*numpy.array([[pmphi1,pmphi2],[pmphi1,pmphi2]])).sum(1).T
+    pmra= pmradec[:,0]
+    pmdec= pmradec[:,1]
+    #Now convert to pmll
+    return bovy_coords.pmrapmdec_to_pmllpmbb(pmra,pmdec,ra,dec)
+
+
+
+
+
+@bovy_coords.scalarDecorator
+@bovy_coords.degreeDecorator([0,1],[0,1])
+def phi12_to_lb(phi1,phi2,degree=False):
+    """
+        NAME:
+        phi12_to_lb
+        PURPOSE:
+        Transform (phi1,phi2) to Galactic coordinates (l,b)
+        INPUT:
+        phi1 - phi longitude (rad or degree)
+        phi2 - phi latitude (rad or degree)
+        degree= (False) if True, input and output are in degrees
+        OUTPUT:
+        (l,b) for scalar input
+        [:,2] array for vector input
+        HISTORY:
+        2014-11-04 - Written - Bovy (IAS)
+        """
+    import numpy
+    
+    _TKOP= numpy.zeros((3,3))
+    _TKOP[0,:]= [-0.4776303088,-0.1738432154,0.8611897727]
+    _TKOP[1,:]= [0.510844589,-0.8524449229,0.111245042]
+    _TKOP[2,:]= [0.7147776536,0.4930681392,0.4959603976]
+    
+    #Convert phi1,phi2 to l,b coordinates
+    phiXYZ= numpy.array([numpy.cos(phi2)*numpy.cos(phi1),
+                         numpy.cos(phi2)*numpy.sin(phi1),
+                         numpy.sin(phi2)])
+    eqXYZ= numpy.dot(_TKOP.T,phiXYZ)
+    #Get ra dec
+    dec= numpy.arcsin(eqXYZ[2])
+    ra= numpy.arctan2(eqXYZ[1],eqXYZ[0])
+    ra[ra<0.]+= 2.*numpy.pi
+    #Now convert to l,b
+    return bovy_coords.radec_to_lb(ra,dec)
+
+
+
