@@ -99,7 +99,6 @@ def optimizer_func(input):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     
     phi1i = phi12i_kop[0]
     phi2i = phi2
-    #phi2i = phi12i[1]
     
     # convert the phi1 and phi2 to be in cylindrical coordinate
     lf, bf        = mw.phi12_to_lb(phi1i, phi2i, degree=True)
@@ -141,7 +140,7 @@ def optimizer_func(input):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     phi12 = mw.lb_to_phi12(lval, bval, degree = True)
     phi12[phi12[:,0] > 180,0]-= 360.
     
-    
+    # calculating likelihood for each set of parameters
     L_pos  = likelihood_all_test(phi12[:,0], phi1_pos,  x_err_pos,  phi12[:,1],     phi2_pos, phi2_err, time)
     L_dist = likelihood_all_test(phi12[:,0], phi1_dist, x_err_dist, o.dist(time),   dist,     dist_err, time)
     L_vrad = likelihood_all_test(phi12[:,0], phi1_vrad, x_err_vrad, vrad_galpy,     Vrad_kop, V_err,    time)
@@ -237,7 +236,6 @@ def optimize():
     init_guess = (phi12i_kop[1], 8.5, mu_array[0], mu_array[1], Vrad)
     val       = sp.optimize.minimize(optimizer_func, init_guess, method = 'BFGS', bounds = bnds, callback=callbackF)
     #val       = sp.optimize.fmin_l_bfgs_b(optimizer_func, init_guess, bounds = bnds)
-    
     return val.x
 
 
@@ -253,6 +251,14 @@ table_contour = np.zeros([len(Vc_list),len(q_list)])
 
 
 
+#----------------------------------------------
+# computing the optimization parameters for
+# each Vc and q in the table and returning a
+# 2D list where each cell includes the optimized
+# values for phi2, d, mu1, mu2 and Vrad,
+# respectively
+#----------------------------------------------
+
 for i in range(len(Vc_list)):
     dict['Vc'] = Vc_list[i]
     print
@@ -266,11 +272,30 @@ for i in range(len(Vc_list)):
         print
 
 
+#----------------------------------------------
+# computing the log-likelihood values for
+# each Vc and q in the table and returning a
+# 2D table
+#----------------------------------------------
+
 for i in range(len(Vc_list)):
     print i
     for j in range((len(q_list)):
         print j
         table_contour[j][i] = contour_singlebox(Vc_list[i],q_list[j])
+  
+                   
+                
+#----------------------------------------------
+#       Plotting log-likelihood contour
+#----------------------------------------------
+                   
+plt.ion()
+plt.contourf(Vc_list,q_list,table_contour,100)
+plt.xlabel("$V_c \, [kms^{-1}]$",fontsize=20)
+plt.ylabel("$q_{\phi}$",fontsize=20)
+plt.title("Log-Likelihood")
+plt.colorbar()
 
 
 
