@@ -1,6 +1,7 @@
-from   GD1_funcs    import *
-import mw_transform as     mw
-import scipy        as     sp
+from   GD1_funcs           import *
+import mw_transform        as     mw
+import scipy               as     sp
+import GD1_likelihood_test as     lt
 
 
 #----------------------------------------------
@@ -73,9 +74,6 @@ def optimizer_func(input):#(phi2,D,mu_phi1,mu_phi2,Vrad):
         
         Vrad:
             radial velocity
-        
-    Functionality
-    ----------------------------------------------------
     
         
     Return
@@ -92,6 +90,9 @@ def optimizer_func(input):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     
     Vc = dict['Vc']
     q  = dict['q']
+    
+    print "vc in function:", Vc
+    print "q in function:" , q
     
     # choose a value of phi2 for the given phi1 (phi1 should stay constant from
     # initial conditions obtained above in degrees
@@ -120,8 +121,8 @@ def optimizer_func(input):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     # use the above initial positions to calculate the potential and orbit
     ro = 8.5
     vo = Vc
-    p  = potential.LogarithmicHaloPotential(q=q,normalize=1)
-    o  = Orbit(vxvv=[Rf/ro, vrf/vo, vtf/vo, zcylf/ro, vzff/vo, phif], ro=ro, vo=vo)
+    p  = potential.LogarithmicHaloPotential(q = q,normalize = 1)
+    o  = Orbit(vxvv=[Rf/ro, vrf/vo, vtf/vo, zcylf/ro, vzff/vo, phif], ro = ro, vo = vo)
     o.integrate(time,p)
     
     #time = np.linspace(0.,1e1,1e4)
@@ -149,8 +150,11 @@ def optimizer_func(input):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     
     # likelihood value in log unit
     L_total = L_pos + L_dist + L_vrad + L_mu1 + L_mu2
+    
+    # chi^2 = -2ln(L) where ln(L) = L_total
+    chi2 = -2. * L_total
 
-    return L_total
+    return chi2
 
 
 
@@ -180,6 +184,22 @@ def check_phi12_to_cylind(phi1,phi2, d, degree = False):
 
 
 def vxvyvz_to_pmphi12(x, y, z, vx, vy, vz, degree):
+    
+    '''
+    Parameters
+    ----------------------------------------------------
+        x, y, z : 
+            position in cartesian coordinate
+            
+        vx, vy, vz :
+            velocity in cartesian coordinate
+        
+    Return
+    ----------------------------------------------------
+        proper motion in stream coordinate as an array
+        and the radial velocity as a number
+
+    '''
 
     l, b, d      = bovy_coords.XYZ_to_lbd(x, y, z, degree = degree)
     vr, vl, vb   = bovy_coords.vxvyvz_to_vrpmllpmbb(vx,vy,vz, l, b, d, degree = degree)
@@ -187,14 +207,71 @@ def vxvyvz_to_pmphi12(x, y, z, vx, vy, vz, degree):
 
     return np.array([vphi1,vphi2]), vr
 
+Nfeval = 1
+
+def callbackF(Xi):
+    global Nfeval
+    print '{0:4d}   {1: 3.6f}   {2: 3.6f}   {3: 3.6f}   {4: 3.6f}'.format(Nfeval, Xi[0], Xi[1], Xi[2], Xi[3], Xi[4], optimizer_func(Xi))
+    Nfeval += 1
+
+print  '{0:4s}   {1:9s}   {2:9s}   {3:9s}   {4:9s}'.format('Iter', ' X1', ' X2', ' X3', 'X4', 'X5', 'f(X)')
 
 
-mu_array,Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi_kop, True)
+def optimize():
+    
+    '''
+    Parameters
+    ----------------------------------------------------
+        
+        
+    Return
+    ----------------------------------------------------
+        returns an array with shape (5,1) that includes
+        the optimized parameters from optimizer_func()
+        function. The parameters are phi2, D, mu_phi1,
+        mu_phi2 and Vrad, respectively.
+
+    '''
+    
+    bnds       = ((-90., 90.), (0., None), (None,None), (None,None), (None,None))
+    init_guess = (phi12i_kop[1], 8.5, mu_array[0], mu_array[1], Vrad)
+    val       = sp.optimize.minimize(optimizer_func, init_guess, method = 'BFGS', bounds = bnds, callback=callbackF)
+    #val       = sp.optimize.fmin_l_bfgs_b(optimizer_func, init_guess, bounds = bnds)
+    
+    return val.x
 
 
-bnds       = ((-90., 90.), (0., None), (None,None), (None,None), (None,None))
-init_guess = (phi12i_kop[1], 8.5, mu_array[0], mu_array[1], Vrad)
-blah       = sp.optimize.minimize(optimizer_func, init_guess, method = 'BFGS', bounds = bnds)
+# initial guess for proper motion and radial velocity
+mu_array, Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi_kop, True)
+
+# Vc and q arrays
+Vc_list = np.linspace(160.,300.,20)
+q_list  = np.linspace(0.4,1.6,20)
+
+table   = [[0] * len(Vc_list) for i in range(1)]#range(len(q_list))]
+table_contour = np.zeros([len(Vc_list),len(q_list)])
+
+
+
+for i in range(len(Vc_list)):
+    dict['Vc'] = Vc_list[i]
+    print
+    print "Vc is", dict['Vc']
+    for j in range(1):#(len(q_list)):
+        dict['q'] = q_list[j]
+        print "going through", j
+        print "q is:", dict['q']
+        table[j][i] = optimize()
+        print "done one q"
+        print
+
+
+for i in range(len(Vc_list)):
+    print i
+    for j in range((len(q_list)):
+        print j
+        table_contour[j][i] = contour_singlebox(Vc_list[i],q_list[j])
+
 
 
 
