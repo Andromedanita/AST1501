@@ -43,7 +43,7 @@ def contour_singlebox(phi2, d, mu1, mu2, Vrad, Vc, q):
     # evaluating the x,y,z and vx,vy,vz from the function variables
     #---------------------------------------------------------------
     phi1          = 34.776756565525091 # degrees
-    lf, bf        = mw.phi12_to_lb(phi1i, phi2, degree=True)
+    lf, bf        = mw.phi12_to_lb(phi1, phi2, degree=True)
     xf, yf, zf    = bovy_coords.lbd_to_XYZ(lf, bf, d, degree = True)
     # guessed initial position in cylindrical coordinate
     Rf,zcylf,phif = xyz_to_cyl(xf, yf, zf)
@@ -60,7 +60,7 @@ def contour_singlebox(phi2, d, mu1, mu2, Vrad, Vc, q):
     
     
 
-    o  = Orbit(vxvv=[Ri/ro,vri/vo,vti/vo,zcyli/ro,vzcyli/vo,phii], ro = ro, vo = vo)
+    o  = Orbit(vxvv=[Rf/ro, vrf/vo, vtf/vo, zcylf/ro, vzff/vo, phif], ro = ro, vo = vo)
     global time
     o.integrate(time,p)
     
