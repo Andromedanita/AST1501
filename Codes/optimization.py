@@ -15,9 +15,6 @@ xi_kop, yi_kop, zi_kop = np.array([3.41,13.00,9.58])
 
 # convert from cartesian to lbd coordinate and returns l and b in degrees
 li_kop, bi_kop, di_kop = bovy_coords.XYZ_to_lbd(xi_kop, yi_kop, zi_kop, degree = True)
-#c = SkyCoord(x=xi_kop, y=yi_kop, z=zi_kop, unit='kpc', representation='cartesian')
-#li_kop, bi_kop, di_kop = 169.29469907, -4.04907112, 16.50468115
-
 
 # convert lb to phi1 and phi2 in degrees
 phi12i_kop = mw.lb_to_phi12(li_kop, bi_kop, degree=True)
@@ -56,12 +53,11 @@ x_err_mu   = np.ones(len(phi1_mu))
 
 # default values for Vc and q - this can be
 # changed to use in the contour plotting
-# dictl = {"Vc":220.,"q":0.9}
 
-ts   = 1000 # number of timesteps
+ts        = 1000 # number of timesteps
 time_glob = np.linspace(0.,1e1,ts)
 
-def optimizer_func(input,Vc,q):#(phi2,D,mu_phi1,mu_phi2,Vrad):
+def optimizer_func(input,Vc,q):
     
     '''
     Parameters
@@ -257,8 +253,9 @@ def optimize(Vc,q):
         pass
     
     else:
-        print "outside"
-        val        = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, callback=callbackF)
+        print "no nan and inf loop"
+        val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5},callback=callbackF)
+        print val.message
         return val.x
     
     #val        = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, callback=callbackF)
@@ -277,7 +274,6 @@ q_list  = np.linspace(0.4,1.6,20)
 table   = [[0] * len(Vc_list) for i in range(len(q_list))]
 table_contour = np.zeros([len(Vc_list),len(q_list)])
 
-#init_guess = (phi12i_kop[1], di_kop, mu_array[0], mu_array[1], Vrad)
 
 #----------------------------------------------
 # computing the optimization parameters for
@@ -289,12 +285,9 @@ table_contour = np.zeros([len(Vc_list),len(q_list)])
 
 for i in range(len(Vc_list)):
     print
-    print "Vc is", Vc_list[i]
-    #for j in range(1):
     for j in range(len(q_list)):
 
         print "going through", j
-        print "q is:", q_list[j]
         table[j][i] = optimize(Vc_list[i],q_list[j])
         print "done one q"
         print
@@ -331,8 +324,11 @@ plt.colorbar()
 '''
 ### test #####
 
-def func(x,y,z):
-    return x+y+z
+def func(input):
+    x = input[0]
+    y = input[1]
+    z = input[2]
+    return x**2 - np.sqrt(y) - z
 
 
 init_guess = (2,3,4)
