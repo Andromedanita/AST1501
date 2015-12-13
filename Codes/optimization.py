@@ -101,20 +101,15 @@ def optimizer_func(input,Vc,q):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     phi1i = phi12i_kop[0]
     phi2i = phi2
     
-    print "phi2 initial is:", phi2i
     
     # convert the phi1 and phi2 to be in cylindrical coordinate
     lf, bf        = mw.phi12_to_lb(phi1i, phi2i, degree=True)
     xf, yf, zf    = bovy_coords.lbd_to_XYZ(lf, bf, D, degree = True)
     
-    #xf, yf, zf = np.array([3.41,13.00,9.58])
-    
-    print "x,y,z values are:", xf, yf, zf
     
     # guessed initial position in cylindrical coordinate
     Rf,zcylf,phif = xyz_to_cyl(xf, yf, zf)
     
-    print "R,z,phi initial are:", Rf, zcylf, phif
     
     # convert proper motion in phi1 and phi2 coordinates to
     # proper motion in Galactic (vl,vb) coordinate
@@ -123,14 +118,9 @@ def optimizer_func(input,Vc,q):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     # convert the vl, vb to proper motion in cartesian coordinate
     vxf, vyf, vzf  = bovy_coords.vrpmllpmbb_to_vxvyvz(Vrad, vl, vb, lf, bf, D, degree = True)
     
-    print "vx,vy,vz initial are:", vxf,vyf,vzf
-    
-    #vxf, vyf, vzf  = np.array([200.4,-162.6,13.9])
     
     # convert vx,vy,vz to be in cylindrical coordinates
     vrf, vtf, vzff = vxvyvz_to_vrvtvz(xf, yf, zf, vxf, vyf, vzf)
-    
-    print "v initial in cylindrical are:", vrf, vtf, vzff
     
     
     # use the above initial positions to calculate the potential and orbit
@@ -164,10 +154,7 @@ def optimizer_func(input,Vc,q):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     L_mu2  = likelihood_all_test(phi12[:,0], phi1_mu,   x_err_mu,   galpy_vel.T[1], mu2,      sigma_mu, time)
     
     print "L position:", L_pos
-    print "L distance:", L_dist
-    print "L Vrad:", L_vrad
-    print "L mu1", L_mu1
-    print "L mu2", L_mu2
+    print
     
     # likelihood value in log unit
     L_total = L_pos + L_dist + L_vrad + L_mu1 + L_mu2
@@ -175,9 +162,13 @@ def optimizer_func(input,Vc,q):#(phi2,D,mu_phi1,mu_phi2,Vrad):
     # chi^2 = -2ln(L) where ln(L) = L_total
     chi2 = -2. * L_total
 
+    '''
+    if (np.isinf(chi2) == True or np.isnan(chi2) == True):
+        return -np.inf
+    else:
+        return chi2
+    '''
     return chi2
-
-
 
 
 def check_phi12_to_cylind(phi1,phi2, d, degree = False):
@@ -237,6 +228,8 @@ def callbackF(Xi):
 
 print  '{0:4s}   {1:9s}   {2:9s}   {3:9s}   {4:9s}'.format('Iter', ' X1', ' X2', ' X3', 'X4', 'X5', 'f(X)')
 
+Vc_inf_list = []
+q_inf_list  = []
 
 def optimize(Vc,q):
     
@@ -253,11 +246,24 @@ def optimize(Vc,q):
         mu_phi2 and Vrad, respectively.
 
     '''
-    
+
     bnds       = ((-90., 90.), (0., None), (None,None), (None,None), (None,None))
     init_guess = (phi12i_kop[1], di_kop, mu_array[0], mu_array[1], Vrad)
-    val        = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, callback=callbackF)
-    return val.x
+    
+    if (np.isinf(optimizer_func(init_guess,Vc,q)) == True or np.isnan(optimizer_func(init_guess,Vc,q)) == True):
+        print "inside nan and inf loop"
+        Vc_inf_list.append(Vc)
+        q_inf_list.append(q)
+        pass
+    
+    else:
+        print "outside"
+        val        = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, callback=callbackF)
+        return val.x
+    
+    #val        = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, callback=callbackF)
+    #return val.x
+
 
 
 # initial guess for proper motion and radial velocity
@@ -267,10 +273,11 @@ mu_array, Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi
 Vc_list = np.linspace(160.,300.,20)
 q_list  = np.linspace(0.4,1.6,20)
 
-table   = [[0] * len(Vc_list) for i in range(1)]#range(len(q_list))]
+#table   = [[0] * len(Vc_list) for i in range(1)]
+table   = [[0] * len(Vc_list) for i in range(len(q_list))]
 table_contour = np.zeros([len(Vc_list),len(q_list)])
 
-
+#init_guess = (phi12i_kop[1], di_kop, mu_array[0], mu_array[1], Vrad)
 
 #----------------------------------------------
 # computing the optimization parameters for
@@ -283,7 +290,8 @@ table_contour = np.zeros([len(Vc_list),len(q_list)])
 for i in range(len(Vc_list)):
     print
     print "Vc is", Vc_list[i]
-    for j in range(1):#(len(q_list)):
+    #for j in range(1):
+    for j in range(len(q_list)):
 
         print "going through", j
         print "q is:", q_list[j]
@@ -309,14 +317,14 @@ for i in range(len(Vc_list)):
 #----------------------------------------------
 #       Plotting log-likelihood contour
 #----------------------------------------------
-                   
+'''
 plt.ion()
 plt.contourf(Vc_list,q_list,table_contour,100)
 plt.xlabel("$V_c \, [kms^{-1}]$",fontsize=20)
 plt.ylabel("$q_{\phi}$",fontsize=20)
 plt.title("Log-Likelihood")
 plt.colorbar()
-
+'''
 
 
 
