@@ -561,8 +561,9 @@ def likelihood_all_test_sum(x_model,x_data,x_err,y_model,y_data,y_err,integ_var)
     
     val        = val_x_tile * val_y_tile
     
+    dinteg_var = (integ_var[1]-integ_var[0])
     import scipy as sp
-    final_val = sp.misc.logsumexp(val, axis=0)
+    final_val = sp.misc.logsumexp(val*dinteg_var, axis=0)
     
     L_final    = np.sum(final_val)
     
