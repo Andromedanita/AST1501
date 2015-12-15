@@ -531,10 +531,46 @@ def likelihood_all_test(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
     
     final_val  = simps(val,integ_var,axis=0)
     
+    # correct ones
     L_array    = np.log(final_val)
     L_final    = np.sum(L_array)
     
     return L_final
+
+
+##############
+
+def likelihood_all_test_sum(x_model,x_data,x_err,y_model,y_data,y_err,integ_var):
+    
+    nm      = len(x_model) # length(model)
+    nd      = len(x_data)  # length(data)
+    L_array = []
+    
+    
+    x_data_tile  = np.tile(x_data,(nm,1))
+    y_data_tile  = np.tile(y_data,(nm,1))
+    x_model_tile = np.tile(x_model,(nd,1))
+    y_model_tile = np.tile(y_model,(nd,1))
+    
+    
+    x_err_tile   = np.tile(x_err,(nm,1))
+    y_err_tile   = np.tile(y_err,(nm,1))
+    
+    val_x_tile = np.exp((-((x_model_tile.T-x_data_tile)**2))/(2.*(x_err_tile**2)))
+    val_y_tile = np.exp((-((y_model_tile.T-y_data_tile)**2))/(2.*(y_err_tile**2)))
+    
+    val        = val_x_tile * val_y_tile
+    
+    import scipy as sp
+    final_val = sp.misc.logsumexp(val, axis=0)
+    
+    L_final    = np.sum(final_val)
+    
+    return L_final
+
+
+##############
+
 
 
 

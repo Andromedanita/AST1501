@@ -82,6 +82,7 @@ def optimizer_func(input,Vc,q):
         D, proper motions in stream coordinates and 
         the radial velocity.
     '''
+    
     phi2    = input[0]
     D       = input[1]
     mu_phi1 = input[2]
@@ -143,27 +144,39 @@ def optimizer_func(input,Vc,q):
     phi12[phi12[:,0] > 180,0]-= 360.
     
     # calculating likelihood for each set of parameters
-    L_pos  = likelihood_all_test(phi12[:,0], phi1_pos,  x_err_pos,  phi12[:,1],     phi2_pos, phi2_err, time)
-    L_dist = likelihood_all_test(phi12[:,0], phi1_dist, x_err_dist, o.dist(time),   dist,     dist_err, time)
-    L_vrad = likelihood_all_test(phi12[:,0], phi1_vrad, x_err_vrad, vrad_galpy,     Vrad_kop, V_err,    time)
-    L_mu1  = likelihood_all_test(phi12[:,0], phi1_mu,   x_err_mu,   galpy_vel.T[0], mu1,      sigma_mu, time)
-    L_mu2  = likelihood_all_test(phi12[:,0], phi1_mu,   x_err_mu,   galpy_vel.T[1], mu2,      sigma_mu, time)
+    L_pos  = likelihood_all_test_sum(phi12[:,0], phi1_pos,  x_err_pos,  phi12[:,1],     phi2_pos, phi2_err, time)
+    L_dist = likelihood_all_test_sum(phi12[:,0], phi1_dist, x_err_dist, o.dist(time),   dist,     dist_err, time)
+    L_vrad = likelihood_all_test_sum(phi12[:,0], phi1_vrad, x_err_vrad, vrad_galpy,     Vrad_kop, V_err,    time)
+    L_mu1  = likelihood_all_test_sum(phi12[:,0], phi1_mu,   x_err_mu,   galpy_vel.T[0], mu1,      sigma_mu, time)
+    L_mu2  = likelihood_all_test_sum(phi12[:,0], phi1_mu,   x_err_mu,   galpy_vel.T[1], mu2,      sigma_mu, time)
     
     print "L position:", L_pos
+    print "L dist:"    , L_dist
+    print "L vrad:"    , L_vrad
+    print "L mu1:"     , L_mu1
+    print "L mu2:"     , L_mu2
     print
     
-    # likelihood value in log unit
     L_total = L_pos + L_dist + L_vrad + L_mu1 + L_mu2
     
+  
     # chi^2 = -2ln(L) where ln(L) = L_total
     chi2 = -2. * L_total
 
+
+    print
+    print "chi2: ",chi2
+    print
+
     '''
-    if (np.isinf(chi2) == True or np.isnan(chi2) == True):
-        return -np.inf
+    if (np.isinf(L_pos) == True or np.isnan(L_pos) or np.isinf(-L_pos)==True):
+    L_total = L_dist + L_vrad + L_mu1 + L_mu2
+    
     else:
-        return chi2
+    # likelihood value in log unit
+    L_total = L_pos + L_dist + L_vrad + L_mu1 + L_mu2
     '''
+    
     return chi2
 
 
@@ -219,10 +232,10 @@ Nfeval = 1
 
 def callbackF(Xi):
     global Nfeval
-    print '{0:4d}   {1: 3.6f}   {2: 3.6f}   {3: 3.6f}   {4: 3.6f}'.format(Nfeval, Xi[0], Xi[1], Xi[2], Xi[3], Xi[4], optimizer_func(Xi))
     Nfeval += 1
 
-print  '{0:4s}   {1:9s}   {2:9s}   {3:9s}   {4:9s}'.format('Iter', ' X1', ' X2', ' X3', 'X4', 'X5', 'f(X)')
+#print  '{0:4s}   {1:9s}   {2:9s}   {3:9s}   {4:9s}'.format('Iter', ' X1', ' X2', ' X3', 'X4', 'X5', 'f(X)')
+
 
 Vc_inf_list = []
 q_inf_list  = []
@@ -246,20 +259,8 @@ def optimize(Vc,q):
     bnds       = ((-90., 90.), (0., None), (None,None), (None,None), (None,None))
     init_guess = (phi12i_kop[1], di_kop, mu_array[0], mu_array[1], Vrad)
     
-    if (np.isinf(optimizer_func(init_guess,Vc,q)) == True or np.isnan(optimizer_func(init_guess,Vc,q)) == True):
-        print "inside nan and inf loop"
-        Vc_inf_list.append(Vc)
-        q_inf_list.append(q)
-        pass
-    
-    else:
-        print "no nan and inf loop"
-        val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5},callback=callbackF)
-        print val.message
-        return val.x
-    
-    #val        = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, callback=callbackF)
-    #return val.x
+    val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5}, callback=callbackF)
+    return val.x
 
 
 
@@ -270,7 +271,7 @@ mu_array, Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi
 Vc_list = np.linspace(160.,300.,20)
 q_list  = np.linspace(0.4,1.6,20)
 
-#table   = [[0] * len(Vc_list) for i in range(1)]
+
 table   = [[0] * len(Vc_list) for i in range(len(q_list))]
 table_contour = np.zeros([len(Vc_list),len(q_list)])
 
@@ -284,12 +285,9 @@ table_contour = np.zeros([len(Vc_list),len(q_list)])
 #----------------------------------------------
 
 for i in range(len(Vc_list)):
-    print
     for j in range(len(q_list)):
-
-        print "going through", j
+        print "i = ",i, "j = ", j
         table[j][i] = optimize(Vc_list[i],q_list[j])
-        print "done one q"
         print
 
 
