@@ -257,7 +257,7 @@ def optimize(Vc,q):
     
     return val.x
 
-'''
+
 
 # initial guess for proper motion and radial velocity
 mu_array, Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi_kop, True)
@@ -284,7 +284,17 @@ for i in range(len(Vc_list)):
         print "i = ",i, "j = ", j
         table[j][i] = optimize(Vc_list[i],q_list[j])
         print
-'''
+
+
+
+file_Name  = "corrected_table_optimization.dat"
+fileObject = open(file_Name,'wb')
+pickle.dump(table,fileObject)
+fileObject.close()
+
+#b = pickle.load(fileObject)
+
+
 
 #----------------------------------------------
 # computing the log-likelihood values for
