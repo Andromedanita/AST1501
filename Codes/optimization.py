@@ -1,6 +1,7 @@
 from   GD1_funcs           import *
 import mw_transform        as     mw
 import scipy               as     sp
+import pickle
 #import GD1_likelihood_test as     lt
 
 
@@ -167,15 +168,8 @@ def optimizer_func(input,Vc,q):
     print
     print "chi2: ",chi2
     print
-
-    '''
-    if (np.isinf(L_pos) == True or np.isnan(L_pos) or np.isinf(-L_pos)==True):
-    L_total = L_dist + L_vrad + L_mu1 + L_mu2
     
-    else:
-    # likelihood value in log unit
-    L_total = L_pos + L_dist + L_vrad + L_mu1 + L_mu2
-    '''
+    print "input:", input
     
     return chi2
 
@@ -260,9 +254,10 @@ def optimize(Vc,q):
     init_guess = (phi12i_kop[1], di_kop, mu_array[0], mu_array[1], Vrad)
     
     val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5}, callback=callbackF)
+    
     return val.x
 
-
+'''
 
 # initial guess for proper motion and radial velocity
 mu_array, Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi_kop, True)
@@ -289,7 +284,7 @@ for i in range(len(Vc_list)):
         print "i = ",i, "j = ", j
         table[j][i] = optimize(Vc_list[i],q_list[j])
         print
-
+'''
 
 #----------------------------------------------
 # computing the log-likelihood values for
