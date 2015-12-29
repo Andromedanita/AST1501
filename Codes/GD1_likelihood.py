@@ -15,8 +15,10 @@ Ri,zcyli,phii = xyz_to_cyl(xi,yi,zi) # phi is in radians
 # initial velocities in cylindrical coordinates
 vri,vti,vzcyli = vxvyvz_to_vrvtvz(xi,yi,zi,vxi,vyi,vzi)
 
-ts   = 1000 # number of timesteps
-time = np.linspace(0.,1e1,ts)
+
+ts        = 1000 # number of timesteps
+time_glob = np.linspace(0.,1e1,ts)
+
 
 phi1_pos,phi2_pos,phi2_err = table2_kop2010()
 phi1_dist,dist,dist_err    = table3_kop2010()
@@ -36,8 +38,7 @@ def contour_singlebox(Vc,q):
     vo = Vc
     p  = potential.LogarithmicHaloPotential(q=q,normalize=1)
     o  = Orbit(vxvv=[Ri/ro,vri/vo,vti/vo,zcyli/ro,vzcyli/vo,phii],ro=ro,vo=vo)
-    global time
-    o.integrate(time,p)
+    o.integrate(time_glob,p)
     
     time = np.linspace(0.,1e1,1e4)
     
@@ -57,12 +58,12 @@ def contour_singlebox(Vc,q):
     phi12[phi12[:,0] > 180,0]-= 360.
 
 
-    L_pos  = likelihood_all(phi12[:,0],phi1_pos,x_err_pos,phi12[:,1],phi2_pos,phi2_err,time)
+    L_pos  = likelihood_all_test_sum(phi12[:,0],phi1_pos,x_err_pos,phi12[:,1],phi2_pos,phi2_err,time)
     print L_pos
-    L_dist = likelihood_all(phi12[:,0],phi1_dist,x_err_dist,o.dist(time),dist,dist_err,time)
-    L_vrad = likelihood_all(phi12[:,0],phi1_vrad,x_err_vrad,vrad_galpy,Vrad,V_err,time)
-    L_mu1  = likelihood_all(phi12[:,0],phi1_mu,x_err_mu,galpy_vel.T[0],mu1,sigma_mu,time)
-    L_mu2  = likelihood_all(phi12[:,0],phi1_mu,x_err_mu,galpy_vel.T[1],mu2,sigma_mu,time)
+    L_dist = likelihood_all_test_sum(phi12[:,0],phi1_dist,x_err_dist,o.dist(time),dist,dist_err,time)
+    L_vrad = likelihood_all_test_sum(phi12[:,0],phi1_vrad,x_err_vrad,vrad_galpy,Vrad,V_err,time)
+    L_mu1  = likelihood_all_test_sum(phi12[:,0],phi1_mu,x_err_mu,galpy_vel.T[0],mu1,sigma_mu,time)
+    L_mu2  = likelihood_all_test_sum(phi12[:,0],phi1_mu,x_err_mu,galpy_vel.T[1],mu2,sigma_mu,time)
     
     L_total = L_pos + L_dist + L_vrad + L_mu1 + L_mu2
     #if L_total == -np.inf:
