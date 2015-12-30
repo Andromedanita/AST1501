@@ -365,8 +365,8 @@ def vxvyvz_to_vrvtvz(x,y,z,vx,vy,vz):
     vr      =  vx * np.cos(phi) + vy * np.sin(phi)
     vt      = -vx * np.sin(phi) + vy * np.cos(phi)
     
-    return np.array([vr,vt,vz])
-
+    #return np.array([vr,vt,vz])
+    return vr,vt,vz
 
 #----------------------------------------------------------
 #           Data in tables 1-4 of Koposov 2010
