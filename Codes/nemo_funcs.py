@@ -1,8 +1,7 @@
-import numpy            as np
-import matplotlib.pylab as plt
+import numpy            as     np
+import matplotlib.pylab as     plt
+from   galpy            import actionAngle
 import os
-
-
 
 def run_nemo(output_name,num_part, w0, mass, rt, wd_units, output_shifted, xs, ys, zs, vxs, vys, vzs, output_evol, tstop, eps, step, kmax, Nlev, fac, accname, accparse, output_final):
 
@@ -99,7 +98,35 @@ def nemo_plot(x,y):
 
 
 
+def nemo_coord_convert(pos,vel):
 
+    """
+    Parameter:
+    -------------------------------------------------------
+        pos : x, y, z position as an array
+        
+        vel : vx, vy, vz velocities as an array
+        
+    Returns:
+    -------------------------------------------------------
+        action-angle coordinates and the omega (frequency)
+    
+    """
+    
+    # position and velocity in cartesian coordinates
+    x, y, z    = pos[0], pos[1], pos[2]
+    vx, vy, vz = vel[0], vel[1], vel[2]
+    
+    # position and velocity in cylindrical coordinates
+    R, zz , phi = xyz_to_cyl(x, y, z)
+    vR, vT, vz  = vxvyvz_to_vrvtvz(x, y, z, vx, vy, vz)
+    
+    # action-angle and omega values
+    jr,lz,jz,Omegar,Omegaphi,Omegaz,angler,anglephi,anglez = actionAngle.actionsFreqsAngles(R,vR,vT,zz,vz,phi)
+
+    # column-stacked values of momentum and frequency
+    val = np.column_stack((jr,lz,jz,Omegar,Omegaphi,Omegaz,angler,anglephi,anglez))
+    return val
 
 
 
