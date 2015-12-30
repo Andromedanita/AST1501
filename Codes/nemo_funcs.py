@@ -1,5 +1,6 @@
 import numpy            as     np
 import matplotlib.pylab as     plt
+from   GD1_funcs        import *
 from   galpy            import actionAngle
 import os
 
@@ -61,7 +62,7 @@ def run_nemo(output_name,num_part, w0, mass, rt, wd_units, output_shifted, xs, y
 
     os.system('mkking' + ' ' +'out=' + output_name + ' ' + 'nbody=' + num_part + ' ' + 'W0=' + w0 + ' ' + 'mass=' + mass + ' ' + 'r_t=' + rt + ' ' + 'WD_units=' + wd_units)
     os.system('snapshift' + ' ' +  output_name + ' ' + output_shifted + 'rshift=' + xs + ',' + ys + ',' + zs + 'vshift=' + vxs + ',' + vys + ',' + vzs)
-    os.system('gyrfalcON' + ' ' + 'in=' + output_shifted + ' ' + 'out=' + output_evol + ' ' + 'tstop=' + tstop + ' ' + 'eps=' + eps + ' ' + 'step=' + step + ' ' +'kmax=' + kmax + ' ' + 'Nlev=' + Nlev + ' ' + 'fac=' + fac + ' ' + 'accname=' + accname + ' ' + 'accpars=' + accpars[0] + ',' accpars[1] + ',' + accpars[2] + ',' + accpars[3] + ',' + accpars[4])
+    os.system('gyrfalcON' + ' ' + 'in=' + output_shifted + ' ' + 'out=' + output_evol + ' ' + 'tstop=' + tstop + ' ' + 'eps=' + eps + ' ' + 'step=' + step + ' ' +'kmax=' + kmax + ' ' + 'Nlev=' + Nlev + ' ' + 'fac=' + fac + ' ' + 'accname=' + accname + ' ' + 'accpars=' + accpars[0] + ',' + accpars[1] + ',' + accpars[2] + ',' + accpars[3] + ',' + accpars[4])
     os.system('s2a' + ' ' + output_evol + ' ' +  output_final)
 
 
@@ -92,8 +93,8 @@ def nemo_plot(x,y):
 
     plt.ion()
     plt.plot(x,y,linewidth=2,color='blue')
-    plt.xlabel(str(x),fontsize=20)
-    plt.ylabel(str(y),fontsize=20)
+    #plt.xlabel(str(x),fontsize=20)
+    #plt.ylabel(str(y),fontsize=20)
 
 
 
@@ -117,9 +118,12 @@ def nemo_coord_convert(pos,vel):
     x, y, z    = pos[0], pos[1], pos[2]
     vx, vy, vz = vel[0], vel[1], vel[2]
     
+    xyz_to_cyl_vect       = np.vectorize(xyz_to_cyl)
+    vxvyvz_to_vrvtvz_vect = np.vectorize(vxvyvz_to_vrvtvz)
+    
     # position and velocity in cylindrical coordinates
-    R, zz , phi = xyz_to_cyl(x, y, z)
-    vR, vT, vz  = vxvyvz_to_vrvtvz(x, y, z, vx, vy, vz)
+    R, zz , phi = xyz_to_cyl_vect(x, y, z)
+    vR, vT, vz  = vxvyvz_to_vrvtvz_vect(x, y, z, vx, vy, vz)
     
     # action-angle and omega values
     jr,lz,jz,Omegar,Omegaphi,Omegaz,angler,anglephi,anglez = actionAngle.actionsFreqsAngles(R,vR,vT,zz,vz,phi)
