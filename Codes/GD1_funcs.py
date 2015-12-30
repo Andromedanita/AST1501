@@ -162,7 +162,8 @@ def xyz_to_cyl(x,y,z):
     if phi<0:
         phi += 2 * np.pi
     
-    return np.array([R,z,phi])
+    #return np.array([R,z,phi])
+    return R,z,phi 
 
 
 #----------------------------------------------------------
