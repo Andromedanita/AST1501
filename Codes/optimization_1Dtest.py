@@ -260,7 +260,7 @@ def optimize(Vc,q):
     bnds       = ((-90., 90.),(0.001,1000.) ,(-1000.,1000.), (-1000.,1000.), (-1000.,1000.))
     #init_guess = (phi12i_kop[1])
     init_guess = (-2., 16., 1., -3., -77.)
-    val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'L-BFGS-B', bounds = bnds, options={'maxiter':50,'disp': True,'maxfun':50}, callback=callbackF)
+    val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'L-BFGS-B', bounds = bnds, options={'maxiter':1500,'disp': True,'maxfun':1500}, callback=callbackF)
     
     return val.x
 
