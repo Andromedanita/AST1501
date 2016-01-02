@@ -88,11 +88,11 @@ def optimizer_func(input,Vc,q):
         the radial velocity.
         '''
     
-    phi2    = input[0]
-    D       = 16.504681154145327
-    mu_phi1 = 0.97936593465360333
-    mu_phi2 = -2.9904347071098933
-    Vrad    = -78.600367246366204
+    phi2    = input[0] #-1.9963652134367555 #input[0]
+    D       = input[1] #16.504681154145327
+    mu_phi1 = input[2] #0.97936593465360333
+    mu_phi2 = input[3] #-2.9904347071098933
+    Vrad    = input[4] #-78.600367246366204
     
     print "vc in function:", Vc
     print "q in function:" , q
@@ -257,9 +257,9 @@ def optimize(Vc,q):
     #bnds       = ((-90., 90.), (0., None), (None,None), (None,None), (None,None))
     #init_guess = (phi12i_kop[1], di_kop, mu_array[0], mu_array[1], Vrad)
     
-    bnds       = ((-90., 90.),)
-    init_guess = (phi12i_kop[1])
-    
+    bnds       = ((-90., 90.),(0.001,1000.) ,(-1000.,1000.), (-1000.,1000.), (-1000.,1000.))
+    #init_guess = (phi12i_kop[1])
+    init_guess = (-2., 16., 1., -3., -77.)
     val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'L-BFGS-B', bounds = bnds, options={'maxiter':50,'disp': True,'maxfun':50}, callback=callbackF)
     
     return val.x
