@@ -141,6 +141,7 @@ def nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo):
     -------------------------------------------------------
         action-angle coordinates and the omega (frequency) as an array
         array([jr,lz,jz,Omegar,Omegaphi,Omegaz,angler,anglephi,anglez])
+        This is for the tail.
     
     """
     
@@ -176,6 +177,122 @@ def nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo):
     val = aAS.actionsFreqsAngles(R,vR,vT,zz,vz,phi)
     
     return val
+
+
+
+def nemo_prog_action_angle(x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use):
+    """
+    Parameter:
+    -------------------------------------------------------
+        x, y, z : initial position of the progenitor
+        
+        vx, vy, vz : initial velocity of the progenitor
+        
+        R0, V0  : radius and circular velocity
+        
+        q       : flattening parameter
+        
+        end_time : time when the simulation ended
+        
+        delta    : focal distance
+        
+        C_use    : True/False - to use C code or not
+        
+       
+    Returns:
+    -------------------------------------------------------
+        action-angle coordinates and the omega (frequency) as an array
+        array([jr,lz,jz,Omegar,Omegaphi,Omegaz,angler,anglephi,anglez])
+        This is for the progenitor.
+
+    """
+    
+    p   = LogarithmicHaloPotential(q = q, normalize = 1.)
+    xyz_to_cyl_vect       = np.vectorize(xyz_to_cyl)
+    vxvyvz_to_vrvtvz_vect = np.vectorize(vxvyvz_to_vrvtvz)
+    
+    R, zz , phi = xyz_to_cyl_vect(x, y, z)
+    vR, vT, vz  = vxvyvz_to_vrvtvz_vect(x, y, z, vx, vy, vz)
+    
+    
+    # convert to natural units for use in galpy
+    R  /= R0
+    zz /= R0
+    vR /= V0
+    vT /= V0
+    vz /= V0
+    
+    # initializing the orbit
+    o = Orbit(vxvv=[R, vR, vT, zz, vz, phi], ro=R0, vo=V0)
+    
+    # to convert the time units to normal
+    t = end_time * (V0/R0)
+    time = np.linspace(0., t, 1e4)
+    o.integrate(time, p)
+                    
+    Rf   = o.R(time)
+    zzf  = o.z(time)
+    vRf  = o.vR(time)
+    vTf  = o.vT(time)
+    vzf  = o.vz(time)
+    phif = o.phi(time)
+                    
+    aAS = actionAngleStaeckel(pot = p, delta = delta, c = C_use)
+    val = aAS.actionsFreqsAngles(Rf, vRf, vTf, zzf, vzf, phif)
+    #o.plot()
+    return val
+
+
+
+
+def strip_time(filename, x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use):
+    """
+    Parameter:
+    -------------------------------------------------------
+    
+        
+        
+    Returns:
+    -------------------------------------------------------
+        Stripping time (eq. 3 in Bovy 2014)
+    
+    """
+    # properties of the tail
+    mass, pos, vel = nemo_read_output(filename)
+    
+    val_prog = nemo_prog_action_angle(x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use)
+    val_tail = nemo_coord_convert(pos, vel, q, delta, C_use, R0, V0)
+
+    # progenitor frequency
+    freq_r_prog   = val_prog[3]
+    freq_phi_prog = val_prog[4]
+    freq_z_prog   = val_prog[5]
+    
+    # tail frequency
+    freq_r_tail   = val_tail[3]
+    freq_phi_tail = val_tail[4]
+    freq_z_tail   = val_tail[5]
+    
+    # progenitor angle
+    theta_r_prog   = val_prog[6]
+    theta_phi_prog = val_prog[7]
+    theta_z_prog   = val_prog[8]
+    
+    # tail angle
+    theta_r_tail   = val_tail[6]
+    theta_phi_tail = val_tail[7]
+    theta_z_tail   = val_tail[8]
+    
+    # frequency offset
+    del_freq  = np.array([freq_r_tail-freq_r_prog, freq_phi_tail-freq_phi_prog, freq_z_tail-freq_z_prog])
+    # angle offset
+    del_theta = np.array([theta_r_tail-theta_r_prog, theta_phi_tail-theta_phi_prog, theta_z_tail-theta_z_prog])
+    
+    num   = np.dot(del_freq, del_theta)
+    #denom =
+
+    #ts = num/denom
+    #return ts
 
 
 
