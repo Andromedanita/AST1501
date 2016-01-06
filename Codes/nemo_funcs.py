@@ -1,7 +1,7 @@
 import numpy             as     np
 import matplotlib.pylab  as     plt
 from   GD1_funcs         import *
-from   galpy.actionAngle import actionAngleStaeckel
+from   galpy.actionAngle import actionAngleStaeckel, actionAngleIsochroneApprox
 from   galpy.potential   import LogarithmicHaloPotential
 import os
 
@@ -145,7 +145,7 @@ def nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo):
     
     # Logarithmic potential and action-angle function initiated
     p   = LogarithmicHaloPotential(q = q, normalize = 1.)
-    aAS = actionAngleStaeckel(pot = p, delta = delta, c = C_use)
+    aAS = actionAngleIsochroneApprox(pot=p, b=0.8)#actionAngleStaeckel(pot = p, delta = delta, c = C_use)
     
     
     # position and velocity in cartesian coordinates
@@ -172,7 +172,7 @@ def nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo):
     vz /= vo
     
     # action-angle and omega values
-    val = aAS.actionsFreqsAngles(R,vR,vT,zz,vz,phi)
+    val = aAS.actionsFreqsAngles(R[:1000],vR[:1000],vT[:1000],zz[:1000],vz[:1000],phi[:1000])
     
     return val
 
