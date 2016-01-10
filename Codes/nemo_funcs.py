@@ -116,7 +116,7 @@ def nemo_read_output(filename):
     return mass, pos, vel
 
 
-def nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo):
+def nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo, m, n):
 
     """
     Parameter:
@@ -172,7 +172,7 @@ def nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo):
     vz /= vo
     
     # action-angle and omega values
-    val = aAS.actionsFreqsAngles(R[:1000],vR[:1000],vT[:1000],zz[:1000],vz[:1000],phi[:1000])
+    val = aAS.actionsFreqsAngles(R[m:n],vR[m:n],vT[m:n],zz[m:n],vz[m:n],phi[m:n])
     
     return val
 
@@ -294,12 +294,51 @@ def strip_time(filename, x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use)
 
 
 
-def nemo_plot(x,y,xlabel,ylabel,label):
+
+def output_cut(pos, vel, q, delta, C_use, ro, vo, N, var):
+    
+    m = 0
+    
+    while n<N:
+        if  (N-n) < var:
+            val = nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo, m, N)
+            np.savetxt("val_tail_{0}.txt".format(N))
+        else:
+            val = nemo_coord_convert(pos, vel, q, delta, C_use, ro, vo, m, n)
+            np.savetxt("val_tail_{0}.txt".format(n))
+            m += var
+            n += var
+
+    
+
+    return
+
+
+def nemo_plot(x,y,xlabel,ylabel):
     
     plt.ion()
-    plt.plot(x,y,linewidth=2,color='blue', label = label)
+    plt.plot(x,y,linewidth=2,color='blue')
     plt.xlabel(xlabel,fontsize=20)
     plt.ylabel(ylabel,fontsize=20)
+
+
+'''
+dir = "/Users/anita/Desktop/"
+filename = "gd1_evol_W"
+ext      = np.array([1.5, 2.0, 2.5, 6.0, 9.0])
+
+for i in range(len(ext)):
+    print "i = ", i
+    data = np.loadtxt(dir + filename + str(ext[i]) + ".dat")
+    print dir + filename + str(ext[i]) + ".dat"
+    plt.figure(i+1)
+    nemo_plot(data[:,1],data[:,3],"X (kpc)","Z (kpc)")
+    plt.title("$W = {0}$".format(ext[i]))
+    print "W is:", ext[i]
+'''
+
+
+
 
 
 
