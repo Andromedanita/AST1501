@@ -235,14 +235,14 @@ def nemo_prog_action_angle(x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_us
     vzf  = o.vz(time)
     phif = o.phi(time)
                     
-    aAS = actionAngleIsochroneApprox(pot=p, b=0.8) #actionAngleStaeckel(pot = p, delta = delta, c = C_use)
+    aAS = actionAngleStaeckel(pot = p, delta = delta, c = C_use) #actionAngleIsochroneApprox(pot=p, b=0.8) #actionAngleStaeckel(pot = p, delta = delta, c = C_use)
     val = aAS.actionsFreqsAngles(Rf, vRf, vTf, zzf, vzf, phif)
     return val
 
 
 
 
-def strip_time(filename, x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use):
+def strip_time(filename_prog, filename_tail):
     """
     Parameter:
     -------------------------------------------------------
@@ -254,11 +254,10 @@ def strip_time(filename, x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use)
         Stripping time (eq. 3 in Bovy 2014)
     
     """
-    # properties of the tail
-    mass, pos, vel = nemo_read_output(filename)
-    
-    val_prog = nemo_prog_action_angle(x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use)
-    val_tail = nemo_coord_convert(pos, vel, q, delta, C_use, R0, V0)
+    # loading tail and progenitor files including
+    # action-angle-frequency values
+    val_prog = np.loadtxt(filename_prog)
+    val_tail = np.loadtxt(filename_tail)
 
     # progenitor frequency
     freq_r_prog   = val_prog[3]
@@ -286,10 +285,11 @@ def strip_time(filename, x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_use)
     del_theta = np.array([theta_r_tail-theta_r_prog, theta_phi_tail-theta_phi_prog, theta_z_tail-theta_z_prog])
     
     num   = np.dot(del_freq, del_theta)
-    #denom =
+    denom = (np.linalg.norm(del_freq)) **2.
 
-    #ts = num/denom
-    #return ts
+    # stripping time
+    ts = num/denom
+    return ts
 
 
 
@@ -308,9 +308,7 @@ def output_cut(pos, vel, q, delta, C_use, ro, vo, N, var):
             m += var
             n += var
 
-    
-
-    return
+    #return
 
 
 def nemo_plot(x,y,xlabel,ylabel):
@@ -320,21 +318,6 @@ def nemo_plot(x,y,xlabel,ylabel):
     plt.xlabel(xlabel,fontsize=20)
     plt.ylabel(ylabel,fontsize=20)
 
-
-'''
-dir = "/Users/anita/Desktop/"
-filename = "gd1_evol_W"
-ext      = np.array([1.5, 2.0, 2.5, 6.0, 9.0])
-
-for i in range(len(ext)):
-    print "i = ", i
-    data = np.loadtxt(dir + filename + str(ext[i]) + ".dat")
-    print dir + filename + str(ext[i]) + ".dat"
-    plt.figure(i+1)
-    nemo_plot(data[:,1],data[:,3],"X (kpc)","Z (kpc)")
-    plt.title("$W = {0}$".format(ext[i]))
-    print "W is:", ext[i]
-'''
 
 
 

@@ -29,6 +29,21 @@ x_err_mu   = np.ones(len(phi1_mu))
 '''
 
 
+#----------------------------------------------
+#  Initializing the Koposov 2010 table values
+#----------------------------------------------
+phi1_pos,phi2_pos,phi2_err = table2_kop2010()
+phi1_dist,dist,dist_err    = table3_kop2010()
+phi1_vrad,Vrad,V_err       = table1_kop2010()
+phi1_mu,mu1,mu2,sigma_mu   = table4_kop2010()
+
+
+x_err_pos  = np.ones(len(phi1_pos))
+x_err_dist = np.ones(len(phi1_dist))
+x_err_vrad = np.ones(len(phi1_vrad))
+x_err_mu   = np.ones(len(phi1_mu))
+
+
 
 ts   = 1000 # number of timesteps
 time = np.linspace(0.,1e1,ts)
@@ -82,16 +97,30 @@ def contour_singlebox(phi2, d, mu1, mu2, Vrad, Vc, q):
     phi12[phi12[:,0] > 180,0]-= 360.
     
     
-    L_pos  = likelihood_all(phi12[:,0],phi1_pos,x_err_pos,phi12[:,1],phi2_pos,phi2_err,time)
-    L_dist = likelihood_all(phi12[:,0],phi1_dist,x_err_dist,o.dist(time),dist,dist_err,time)
-    L_vrad = likelihood_all(phi12[:,0],phi1_vrad,x_err_vrad,vrad_galpy,Vrad,V_err,time)
-    L_mu1  = likelihood_all(phi12[:,0],phi1_mu,x_err_mu,galpy_vel.T[0],mu1,sigma_mu,time)
-    L_mu2  = likelihood_all(phi12[:,0],phi1_mu,x_err_mu,galpy_vel.T[1],mu2,sigma_mu,time)
+    L_pos  = likelihood_all_test_sum(phi12[:,0], phi1_pos,  x_err_pos,  phi12[:,1],     phi2_pos, phi2_err, time)
+    L_dist = likelihood_all_test_sum(phi12[:,0], phi1_dist, x_err_dist, o.dist(time),   dist,     dist_err, time)
+    L_vrad = likelihood_all_test_sum(phi12[:,0], phi1_vrad, x_err_vrad, vrad_galpy,     Vrad,     V_err,    time)
+    L_mu1  = likelihood_all_test_sum(phi12[:,0], phi1_mu,   x_err_mu,   galpy_vel.T[0], mu1,      sigma_mu, time)
+    L_mu2  = likelihood_all_test_sum(phi12[:,0], phi1_mu,   x_err_mu,   galpy_vel.T[1], mu2,      sigma_mu, time)
     
     L_total = L_pos + L_dist + L_vrad + L_mu1 + L_mu2
 
     return L_total
 
+
+Vc_list = np.linspace(160.,300.,20)
+q_list  = np.linspace(0.4,1.6,20)
+
+table = np.zeros([len(Vc_list),len(q_list)])
+
+import pickle
+fileObject = open("/Users/anita/Desktop/table_optimization_5D.dat",'r')
+params     = pickle.load(fileObject)
+
+for i in range(len(Vc_list)):
+    print i
+    for j in range(len(q_list)):
+        table[j][i] = contour_singlebox(params[j][i][0], params[j][i][1], params[j][i][2], params[j][i][3], params[j][i][4], Vc_list[i],q_list[j])
 
 '''
 Vc_list = np.linspace(160.,300.,20)
