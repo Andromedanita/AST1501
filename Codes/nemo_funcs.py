@@ -235,9 +235,8 @@ def nemo_prog_action_angle(x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_us
     vzf  = o.vz(time)
     phif = o.phi(time)
                     
-    aAS = actionAngleStaeckel(pot = p, delta = delta, c = C_use)
+    aAS = actionAngleIsochroneApprox(pot=p, b=0.8) #actionAngleStaeckel(pot = p, delta = delta, c = C_use)
     val = aAS.actionsFreqsAngles(Rf, vRf, vTf, zzf, vzf, phif)
-    #o.plot()
     return val
 
 
