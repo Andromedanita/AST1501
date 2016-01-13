@@ -235,7 +235,7 @@ def nemo_prog_action_angle(x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_us
     vzf  = o.vz(time)
     phif = o.phi(time)
                     
-    aAS = actionAngleStaeckel(pot = p, delta = delta, c = C_use) #actionAngleIsochroneApprox(pot=p, b=0.8) #actionAngleStaeckel(pot = p, delta = delta, c = C_use)
+    aAS = actionAngleIsochroneApprox(pot=p, b=0.8) #actionAngleStaeckel(pot = p, delta = delta, c = C_use)
     val = aAS.actionsFreqsAngles(Rf, vRf, vTf, zzf, vzf, phif)
     return val
 
@@ -319,6 +319,14 @@ def nemo_plot(x,y,xlabel,ylabel):
     plt.ylabel(ylabel,fontsize=20)
 
 
+def tail_cut(data):
+    
+    thetar = data[:,6]
+    thetar = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
+    indx   = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
+    valx   = data[indx,3]#*bovy_conversion.freq_in_Gyr(220.,8.)
+    valy   = data[indx,5]#*bovy_conversion.freq_in_Gyr(220.,8.)
+    return valx, valy
 
 
 
