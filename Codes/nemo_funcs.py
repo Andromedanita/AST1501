@@ -108,7 +108,7 @@ def nemo_read_output(filename):
         are in array format)
     """
 
-    data = np.loadtxt(filename)
+    data = np.loadtxt(filename, delimiter=',')
     mass = data.T[0]
     pos  = data.T[1:4]
     vel  = data.T[4:7]
@@ -324,10 +324,7 @@ def tail_cut(data):
     thetar = data[:,6]
     thetar = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
     indx   = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
-    valx   = data[indx,3]#*bovy_conversion.freq_in_Gyr(220.,8.)
-    valy   = data[indx,5]#*bovy_conversion.freq_in_Gyr(220.,8.)
-    return valx, valy
-
+    return indx
 
 
 
