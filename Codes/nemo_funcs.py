@@ -260,9 +260,9 @@ def strip_time(filename_prog, filename_tail):
     val_tail = np.loadtxt(filename_tail)
 
     # progenitor frequency
-    freq_r_prog   = val_prog[3]
-    freq_phi_prog = val_prog[4]
-    freq_z_prog   = val_prog[5]
+    freq_r_prog   = val_prog[3][len(val_prog)-1]
+    freq_phi_prog = val_prog[4][len(val_prog)-1]
+    freq_z_prog   = val_prog[5][len(val_prog)-1]
     
     # tail frequency
     freq_r_tail   = val_tail[3]
@@ -270,9 +270,9 @@ def strip_time(filename_prog, filename_tail):
     freq_z_tail   = val_tail[5]
     
     # progenitor angle
-    theta_r_prog   = val_prog[6]
-    theta_phi_prog = val_prog[7]
-    theta_z_prog   = val_prog[8]
+    theta_r_prog   = val_prog[6][len(val_prog)-1]
+    theta_phi_prog = val_prog[7][len(val_prog)-1]
+    theta_z_prog   = val_prog[8][len(val_prog)-1]
     
     # tail angle
     theta_r_tail   = val_tail[6]
