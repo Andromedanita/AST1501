@@ -256,28 +256,28 @@ def strip_time(filename_prog, filename_tail):
     """
     # loading tail and progenitor files including
     # action-angle-frequency values
-    val_prog = np.loadtxt(filename_prog)
+    val_prog = np.loadtxt(filename_prog, delimiter=',')
     val_tail = np.loadtxt(filename_tail)
 
     # progenitor frequency
-    freq_r_prog   = val_prog[3][len(val_prog)-1]
-    freq_phi_prog = val_prog[4][len(val_prog)-1]
-    freq_z_prog   = val_prog[5][len(val_prog)-1]
+    freq_r_prog   = val_prog[:,3][len(val_prog)-1] * fact
+    freq_phi_prog = val_prog[:,4][len(val_prog)-1] * fact
+    freq_z_prog   = val_prog[:,5][len(val_prog)-1] * fact
     
     # tail frequency
-    freq_r_tail   = val_tail[3]
-    freq_phi_tail = val_tail[4]
-    freq_z_tail   = val_tail[5]
+    freq_r_tail   = val_tail[:,3] * fact
+    freq_phi_tail = val_tail[:,4] * fact
+    freq_z_tail   = val_tail[:,5] * fact
     
     # progenitor angle
-    theta_r_prog   = val_prog[6][len(val_prog)-1]
-    theta_phi_prog = val_prog[7][len(val_prog)-1]
-    theta_z_prog   = val_prog[8][len(val_prog)-1]
+    theta_r_prog   = val_prog[:,6][len(val_prog)-1]
+    theta_phi_prog = val_prog[:,7][len(val_prog)-1]
+    theta_z_prog   = val_prog[:,8][len(val_prog)-1]
     
     # tail angle
-    theta_r_tail   = val_tail[6]
-    theta_phi_tail = val_tail[7]
-    theta_z_tail   = val_tail[8]
+    theta_r_tail   = val_tail[:,6]
+    theta_phi_tail = val_tail[:,7]
+    theta_z_tail   = val_tail[:,8]
     
     # frequency offset
     del_freq  = np.array([freq_r_tail-freq_r_prog, freq_phi_tail-freq_phi_prog, freq_z_tail-freq_z_prog])
