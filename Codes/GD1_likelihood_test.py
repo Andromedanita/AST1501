@@ -2,32 +2,6 @@ from   GD1_funcs    import *
 import mw_transform as     mw
 import scipy        as     sp
 
-'''
-# initial positions in cartesian coordinates in natural units
-xi,yi,zi = np.array([3.41,13.00,9.58]) # (kpc) in physical units (same as Koposov 2010)
-#  with x sign flipped
-# initial velocities in cartesian coordinates in natural units
-vxi,vyi,vzi = np.array([200.4,-162.6,13.9]) # (km/s) in physical units
-
-# initial coordinates in cylindrical coordinates
-Ri,zcyli,phii = xyz_to_cyl(xi,yi,zi) # phi is in radians
-
-# initial velocities in cylindrical coordinates
-vri,vti,vzcyli = vxvyvz_to_vrvtvz(xi,yi,zi,vxi,vyi,vzi)
-
-
-phi1_pos,phi2_pos,phi2_err = table2_kop2010()
-phi1_dist,dist,dist_err    = table3_kop2010()
-phi1_vrad,Vrad,V_err       = table1_kop2010()
-phi1_mu,mu1,mu2,sigma_mu   = table4_kop2010()
-
-
-x_err_pos  = np.ones(len(phi1_pos))
-x_err_dist = np.ones(len(phi1_dist))
-x_err_vrad = np.ones(len(phi1_vrad))
-x_err_mu   = np.ones(len(phi1_mu))
-'''
-
 
 #----------------------------------------------
 #  Initializing the Koposov 2010 table values
@@ -114,7 +88,7 @@ q_list  = np.linspace(0.4,1.6,20)
 table = np.zeros([len(Vc_list),len(q_list)])
 
 import pickle
-fileObject = open("/Users/anita/Desktop/table_optimization_5D.dat",'r')
+fileObject = open("/Users/anita/Desktop/data_files/table_optimization_5D.dat",'r')
 params     = pickle.load(fileObject)
 
 for i in range(len(Vc_list)):
@@ -158,15 +132,6 @@ def marginalize_int(Vc,q,R0_val,R0_err,R0_min,R0_max):
 
 '''
 
-
-'''
-    plt.ion()
-    plt.contourf(Vc_list,q_list,table,100)
-    plt.xlabel("$V_c \, [kms^{-1}]$",fontsize=20)
-    plt.ylabel("$q_{\phi}$",fontsize=20)
-    plt.title("Likelihood")
-    plt.colorbar()
-'''
 
 
 
