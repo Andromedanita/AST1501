@@ -3,7 +3,9 @@ import matplotlib.pylab  as     plt
 from   GD1_funcs         import *
 from   galpy.actionAngle import actionAngleStaeckel, actionAngleIsochroneApprox
 from   galpy.potential   import LogarithmicHaloPotential
+from   galpy.util        import bovy_conversion
 import os
+import copy
 
 #def run_nemo(output_name,num_part, w0, mass, rt, wd_units, output_shifted, xs, ys, zs, vxs, vys, vzs, output_evol, tstop, eps, step, kmax, Nlev, fac, accname, accparse, output_final):
 
@@ -242,7 +244,7 @@ def nemo_prog_action_angle(x, y, z, vx, vy, vz, R0, V0, q, end_time, delta, C_us
 
 
 
-def strip_time(filename_prog, filename_tail):
+def strip_time(filename_tail):
     """
     Parameter:
     -------------------------------------------------------
@@ -254,43 +256,36 @@ def strip_time(filename_prog, filename_tail):
         Stripping time (eq. 3 in Bovy 2014)
     
     """
-    # loading tail and progenitor files including
-    # action-angle-frequency values
-    val_prog = np.loadtxt(filename_prog, delimiter=',')
-    val_tail = np.loadtxt(filename_tail)
-
-    # progenitor frequency
-    freq_r_prog   = val_prog[:,3][len(val_prog)-1] * fact
-    freq_phi_prog = val_prog[:,4][len(val_prog)-1] * fact
-    freq_z_prog   = val_prog[:,5][len(val_prog)-1] * fact
     
-    # tail frequency
-    freq_r_tail   = val_tail[:,3] * fact
-    freq_phi_tail = val_tail[:,4] * fact
-    freq_z_tail   = val_tail[:,5] * fact
-    
-    # progenitor angle
-    theta_r_prog   = val_prog[:,6][len(val_prog)-1]
-    theta_phi_prog = val_prog[:,7][len(val_prog)-1]
-    theta_z_prog   = val_prog[:,8][len(val_prog)-1]
-    
-    # tail angle
-    theta_r_tail   = val_tail[:,6]
-    theta_phi_tail = val_tail[:,7]
-    theta_z_tail   = val_tail[:,8]
-    
-    # frequency offset
-    del_freq  = np.array([freq_r_tail-freq_r_prog, freq_phi_tail-freq_phi_prog, freq_z_tail-freq_z_prog])
-    # angle offset
-    del_theta = np.array([theta_r_tail-theta_r_prog, theta_phi_tail-theta_phi_prog, theta_z_tail-theta_z_prog])
-    
-    num   = np.dot(del_freq, del_theta)
-    denom = (np.linalg.norm(del_freq)) **2.
-
-    # stripping time
-    ts = num/denom
-    return ts
-
+    data      = np.loadtxt(filename_tail)
+    thetar    = data[:,6]
+    thetar    = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
+    indx      = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
+    thetar    = thetar[indx]
+    thetap    = data[:,7]
+    thetap    = (np.pi+(thetap-np.median(thetap))) % (2.*np.pi)
+    thetap    = thetap[indx]
+    thetaz    = data[:,8]
+    thetaz    = (np.pi+(thetaz-np.median(thetaz))) % (2.*np.pi)
+    thetaz    = thetaz[indx]
+    # center around 0 (instead of pi)
+    thetar   -= np.pi
+    thetap   -= np.pi
+    thetaz   -= np.pi
+    # Frequencies
+    Or        = data[:,3]
+    Op        = data[:,4]
+    Oz        = data[:,5]
+    dOr       = Or[indx]-np.median(Or)
+    dOp       = Op[indx]-np.median(Op)
+    dOz       = Oz[indx]-np.median(Oz)
+    # Times
+    dangle    = np.vstack((thetar,thetap,thetaz))
+    dO        = np.vstack((dOr,dOp,dOz))*bovy_conversion.freq_in_Gyr(220.,8.)
+    ts        = np.sum(dO*dangle,axis=0)/np.sum(dO**2.,axis=0)
+    del_freq  = np.sum(dO**2.,    axis=0)
+    del_theta = np.sum(dangle**2.,axis=0)
+    return  dO, dangle, del_freq, del_theta, ts
 
 
 
@@ -325,6 +320,44 @@ def tail_cut(data):
     thetar = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
     indx   = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
     return indx
+
+
+
+def hist_fig4(filename):
+    data    = np.loadtxt(filename)
+    thetar  = data[:,6]
+    thetar  = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
+    indx    = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
+    #Frequencies
+    Or  = data[:,3]
+    Op  = data[:,4]
+    Oz  = data[:,5]
+    dOr = Or[indx]-np.median(Or)
+    dOp = Op[indx]-np.median(Op)
+    dOz = Oz[indx]-np.median(Oz)
+    dO  = np.vstack((dOr,dOp,dOz))*bovy_conversion.freq_in_Gyr(220.,8.)
+    dO4dir = copy.copy(dO)
+    dO4dir[:,dO4dir[:,0] < 0.]*= -1.
+    dOdir  = np.median(dO4dir,axis=1)
+    dOdir /= np.sqrt(np.sum(dOdir**2.))
+    dO1d   = np.dot(dOdir,dO)
+    #print "Misalignment:", numpy.arccos(numpy.sum(dOdir*progaa[-1,3:6])/numpy.sqrt(numpy.sum(dOdir**2.)*numpy.sum(progaa[-1,3:6]**2.)))/numpy.pi*180.-180.
+    dO1d[dO1d < 0.]*= -1.
+    return dO1d
+
+
+
+def fig5(filename):
+    dO, dangle, del_freq, del_theta, ts = strip_time(filename)
+    #Direction in which the stream spreads
+    dO4dir = copy.copy(dO)
+    dO4dir[:,dO4dir[:,0] < 0.]*= -1.
+    dOdir  = np.median(dO4dir,axis=1)
+    dOdir /= np.sqrt(np.sum(dOdir**2.))
+    #Times
+    valx  = np.fabs(np.dot(dangle.T,dOdir))
+    valy  = np.fabs(np.dot(dO.T,dOdir))
+    return valx, valy
 
 
 
