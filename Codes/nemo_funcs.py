@@ -341,7 +341,6 @@ def hist_fig4(filename):
     dOdir  = np.median(dO4dir,axis=1)
     dOdir /= np.sqrt(np.sum(dOdir**2.))
     dO1d   = np.dot(dOdir,dO)
-    #print "Misalignment:", numpy.arccos(numpy.sum(dOdir*progaa[-1,3:6])/numpy.sqrt(numpy.sum(dOdir**2.)*numpy.sum(progaa[-1,3:6]**2.)))/numpy.pi*180.-180.
     dO1d[dO1d < 0.]*= -1.
     return dO1d
 
@@ -359,6 +358,21 @@ def fig5(filename):
     valy  = np.fabs(np.dot(dO.T,dOdir))
     return valx, valy
 
+
+
+def plot_gauss(values):
+
+    import matplotlib.mlab as mlab
+    mean     = np.mean(values)
+    variance = np.var(values)
+    sigma    = np.sqrt(variance)
+    mu_sig   = mean/sigma
+    #x        = np.linspace(np.min(values), np.max(values),200)
+    x        = np.linspace(0., 0.45, 200)
+    plt.plot(x,mlab.normpdf(x,mean,sigma), 'r', lw=2)
+    print "mean  is:", mean
+    print "sigma is:", sigma
+    print "mu_sigma is:", mu_sig
 
 
 

@@ -45,6 +45,9 @@ def dens():
     
     rsol = integrate.odeint(solvr, [W0 * sig2,0.01], rrange)
     w    = np.column_stack((rrange, rsol[:,0], rsol[:,1]))
+    
+    if np.isnan(rsol[:,0]):
+        np.pop(rsol)
     np.savetxt("test_sols.txt", w, fmt="%.9e")
     return rsol
 
