@@ -44,7 +44,7 @@ def optimizer_func(input):
     var5 = np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.])- 42.88727925)
     var6 = np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.])- 79.172383882274971)
     
-    fin_val = var1 * var2 * var3 * var4 * var5 * var6
+    fin_val = var1 + var2 + var3 + var4 + var5 + var6
     
     print
     print "x diff :",  var1
