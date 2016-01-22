@@ -36,13 +36,13 @@ def optimizer_func(input):
     o = Orbit(vxvv=[Ri/ro,vri/vo,vti/vo,zcyli/ro,vzcyli/vo,phii],ro=ro,vo=vo)
     o.integrate(time,p)
 
-    var1 = np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.])- 12.4)
-    var2 = np.fabs(o.y(time[999],ro = ro,obs= [ro,0.,0.])- 1.5)
-    var3 = np.fabs(o.z(time[999],ro = ro,obs= [ro,0.,0.])- 7.1)
+    var1 = np.fabs(np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.]))- 12.4)
+    var2 = np.fabs(np.fabs(o.y(time[999],ro = ro,obs= [ro,0.,0.]))- 1.5)
+    var3 = np.fabs(np.fabs(o.z(time[999],ro = ro,obs= [ro,0.,0.]))- 7.1)
 
-    var4 = np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.])- -128.8281653)
-    var5 = np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.])- 42.88727925)
-    var6 = np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.])- 79.172383882274971)
+    var4 = np.fabs(np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.]))- 128.8281653)
+    var5 = np.fabs(np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.]))- 42.88727925)
+    var6 = np.fabs(np.fabs(o.x(time[999],ro = ro,obs= [ro,0.,0.]))- 79.172383882274971)
     
     fin_val = var1 + var2 + var3 + var4 + var5 + var6
     
