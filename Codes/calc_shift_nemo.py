@@ -72,7 +72,7 @@ def optimize():
     bnds       = ((-15.,-9), (-30., -10.), (-20.,0.), (-140.,-115.), (35.,50.), (65.,90.))
     init_guess = (-11., -20., -10., -128., 42., 79.)
     
-    val = sp.optimize.minimize(optimizer_func, init_guess, method = 'BFGS', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5}, callback=callbackF)
+    val = sp.optimize.minimize(optimizer_func, init_guess, method = 'L-BFGS-B', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5}, callback=callbackF)
     
     return val.x
 
