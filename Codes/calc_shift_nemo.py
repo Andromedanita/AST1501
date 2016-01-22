@@ -7,7 +7,7 @@ ts   = 1000 # number of timesteps
 time = np.linspace(0.,5.,ts)
 
 
-ro = 8.
+ro = 17.23547752025507.
 vo = 220.
 q  = 0.9
 p  = potential.LogarithmicHaloPotential(q = q, normalize = 1)
