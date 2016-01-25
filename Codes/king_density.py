@@ -6,7 +6,7 @@ rho1 = 1.
 G    = 1. #6.673e-11
 sig  = 1.
 sig2 = sig**2.
-W0   = 3.
+W0   = 12.
 
 rrange = np.arange(0.01,100.,0.01)
 
@@ -17,6 +17,7 @@ def solvr(psi, r):
     val  = (np.exp(x1/sig2) * special.erf(np.sqrt(x1)/sig)) - (np.sqrt((4. * x1)/(np.pi*sig2)) * (1. + ((2*x1)/(3*sig2))))
     val_fin = (-4 * np.pi * G * rho1 * val) - ((2. * x2)/r)
     
+    '''
     print
     print "x1:   ", x1
     print "x2:   ", x2
@@ -26,7 +27,8 @@ def solvr(psi, r):
     print "last: ", 1. + ((2*x1)/(3*sig2))
     print "2/r:", (2. * x2)/r
     print
-
+    '''
+    
     return np.array([x2, val_fin], float)
 
 
@@ -45,13 +47,10 @@ def dens():
     
     rsol = integrate.odeint(solvr, [W0 * sig2,0.01], rrange)
     w    = np.column_stack((rrange, rsol[:,0], rsol[:,1]))
-    
-    if np.isnan(rsol[:,0]):
-        np.pop(rsol)
     np.savetxt("test_sols.txt", w, fmt="%.9e")
     return rsol
 
-
+'''
 #if __name__ == '__main__':
 #    q = dens()
 
@@ -78,10 +77,10 @@ for r in rpoints:
 plt.ion()
 plt.plot(rpoints,x1points)
 plt.plot(rpoints,x2points)
+'''
 
 
-
-def psi_r(r):
+def psi_r(r, psi_vals):
     '''
     Parameter
     -------------------------------------------
@@ -92,14 +91,35 @@ def psi_r(r):
         interpolated value of psi(r) obtained
         from solving the ode numerically.
     '''
-    val = interpolate.interp1d(q[:,0],rrange)
+    val = interpolate.interp1d(r, psi_vals, kind='cubic')
     return val
+
+'''
+def rho_r(r, psi_vals):
+    x1 = psi_r(r, psi_vals)
+    val = rho1 * ((np.exp(x1/sig2) * special.erf(np.sqrt(x1)/sig)) - (np.sqrt((4. * x1)/(np.pi*sig2)) * (1. + ((2*x1)/(3*sig2)))))
+    return val
+'''
+
+q        = dens()
+psi_vals = q[:,0][~np.isnan(q[:,0])]
+rvals = rrange[:len(psi_vals)]
+#rho_vals = rho_r(rvals, psi_vals)
 
 
 def rho_r(r):
-    x1 = psi_r(r)
+    x1 = psi_vals
     val = rho1 * ((np.exp(x1/sig2) * special.erf(np.sqrt(x1)/sig)) - (np.sqrt((4. * x1)/(np.pi*sig2)) * (1. + ((2*x1)/(3*sig2)))))
     return val
+
+
+rho_vals = rho_r(rvals)
+
+plt.ion()
+plt.loglog(rvals,rho_vals, color = 'purple', lw = 3., label= "$W_0 = 12.0$ ")
+plt.xlabel("$\mathrm{log}(R)$",fontsize=20)
+plt.ylabel(r"$\mathrm{log(\rho}(R))$",fontsize=20)
+plt.title("$W_0 = {0}$".format(W0), fontsize=20)
 
 
 '''
