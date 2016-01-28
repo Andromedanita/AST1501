@@ -4,8 +4,11 @@ from   GD1_funcs         import *
 from   galpy.actionAngle import actionAngleStaeckel, actionAngleIsochroneApprox
 from   galpy.potential   import LogarithmicHaloPotential
 from   galpy.util        import bovy_conversion
+from   scipy             import optimize, special
+from   galpy.util        import bovy_plot, bovy_coords, bovy_conversion
 import os
 import copy
+
 
 #def run_nemo(output_name,num_part, w0, mass, rt, wd_units, output_shifted, xs, ys, zs, vxs, vys, vzs, output_evol, tstop, eps, step, kmax, Nlev, fac, accname, accparse, output_final):
 
@@ -359,6 +362,15 @@ def fig5(filename):
     return valx, valy
 
 
+def gausstimesvalue(params,vals,nologsum=False):
+    tmean  = np.exp(params[0])
+    tsig   = np.exp(params[1])
+    norm   = tsig**2. * np.exp(-tmean**2./2./tsig**2.)+tsig*np.sqrt(np.pi/2.) * tmean * (1.+special.erf(tmean/np.sqrt(2.)/tsig))
+    if nologsum:
+        return np.fabs(vals)/norm * np.exp(-(vals-tmean)**2./2./tsig**2.)
+    else:
+        return -np.sum(np.log(np.fabs(vals)/norm * np.exp(-(vals-tmean)**2./2./tsig**2.)))
+
 
 def plot_gauss(values):
 
@@ -368,11 +380,16 @@ def plot_gauss(values):
     sigma    = np.sqrt(variance)
     mu_sig   = mean/sigma
     #x        = np.linspace(np.min(values), np.max(values),200)
-    x        = np.linspace(0., 0.45, 200)
-    plt.plot(x,mlab.normpdf(x,mean,sigma), 'r', lw=2)
-    print "mean  is:", mean
-    print "sigma is:", sigma
+    xs       = np.linspace(0., 0.8, 1001)
+    plt.plot(xs, mlab.normpdf(xs,mean,sigma), 'r--', lw=2)
+    print "mean  is:"   , mean
+    print "sigma is:"   , sigma
     print "mu_sigma is:", mu_sig
+
+    bestfit= optimize.fmin_powell(gausstimesvalue, np.array([np.log(mean*2.), np.log(np.std(values))]), args=(values,))
+    print np.exp(bestfit)
+    bovy_plot.bovy_plot(xs, gausstimesvalue(bestfit, xs, nologsum=True), '-', color='blue', overplot=True, lw=2., zorder=1)
+
 
 
 
