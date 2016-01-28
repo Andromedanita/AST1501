@@ -3,15 +3,60 @@ import mw_transform as     mw
 import scipy        as     sp
 
 
+def actualtime_to_nemotime(t):
+    '''
+    t should be given in Gyrs.
+    Converts actual time to nemo time units
+    '''
+    t     *= 1000.             # to convert to Myrs
+    unit   = 977.7922212082034 # 1 nemo time unit is this many Myrs
+    val    = t/unit
+    return val
+
+
+def nemotime_to_actualtime(tunit):
+    '''
+    Converts nemo time units to actual time in Gyr
+    '''
+    
+    unit   = 977.7922212082034 # 1 nemo time unit is this many Myrs
+    val    = unit * tunit
+    val   /= 1000.             # to convert to Gyrs
+    return val
+
+
 ts   = 1000 # number of timesteps
-time = np.linspace(0.,5.,ts)
+time = np.linspace(0., nemotime_to_actualtime(5.125), ts)
 
-
-ro = 17.23547752025507.
+ro = 8.
 vo = 220.
 q  = 0.9
 p  = potential.LogarithmicHaloPotential(q = q, normalize = 1)
 
+xnow, ynow, znow    = np.array([12.4,1.5,7.1])
+vxnow, vynow, vznow = np.array([107.0,-243.0,-105.0])
+
+Ri,zcyli,phii  = xyz_to_cyl(xnow,ynow,znow)
+vri,vti,vzcyli = vxvyvz_to_vrvtvz(xnow,ynow,znow,-vxnow, -vynow, -vznow)
+
+o = Orbit(vxvv=[Ri/ro, vri/vo, vti/vo, zcyli/ro, vzcyli/vo, phii], ro=ro, vo=vo)
+o.integrate(time,p)
+
+
+print
+print "x start is:", o.x(time[ts-1], ro = ro, obs= [ro,0.,0.])
+print "y start is:", o.y(time[ts-1], ro = ro, obs= [ro,0.,0.])
+print "z start is:", o.z(time[ts-1], ro = ro, obs= [ro,0.,0.])
+
+print "vx start is:", -o.vx(time[ts-1],ro = ro,obs= [ro,0.,0.])
+print "vy start is:", -o.vy(time[ts-1],ro = ro,obs= [ro,0.,0.])
+print "vz start is:", -o.vz(time[ts-1],ro = ro,obs= [ro,0.,0.])
+
+
+#xnow, ynow, znow = np.array([-11.63337239, -20.76235661, -10.631736273934635])
+#vxnow, vynow, vznow = np.array([-128.8281653, 42.88727925, 79.172383882274971])
+
+'''
 xnow, ynow, znow = np.array([-11.63337239, -20.76235661, -10.631736273934635])
 vxnow, vynow, vznow = np.array([-128.8281653, 42.88727925, 79.172383882274971])
     
@@ -77,8 +122,6 @@ def optimize():
     return val.x
 
 
-
-
 table = optimize()
 
-
+'''
