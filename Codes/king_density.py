@@ -1,6 +1,7 @@
 import numpy            as     np
 import matplotlib.pylab as     plt
 from   scipy            import integrate, special, interpolate
+import matplotlib.cm    as     cm
 
 rho1 = 1.
 G    = 1.
@@ -8,7 +9,7 @@ sig  = 1.
 sig2 = sig**2.
 W0   = 12.
 
-rrange = np.arange(0.01,100.,0.01)
+rrange = np.arange(0.000001,100.,0.00001)
 
 def solvr(psi, r):
 
@@ -16,18 +17,6 @@ def solvr(psi, r):
     x2   = psi[1]
     val  = (np.exp(x1/sig2) * special.erf(np.sqrt(x1)/sig)) - (np.sqrt((4. * x1)/(np.pi*sig2)) * (1. + ((2*x1)/(3*sig2))))
     val_fin = (-4 * np.pi * G * rho1 * val) - ((2. * x2)/r)
-    
-    '''
-    print
-    print "x1:   ", x1
-    print "x2:   ", x2
-    print "exp:  ", np.exp(x1/sig2)
-    print "efr:  ", special.erf(np.sqrt(x1)/sig)
-    print "sqrt: ", np.sqrt((4. * x1)/(np.pi*sig2))
-    print "last: ", 1. + ((2*x1)/(3*sig2))
-    print "2/r:", (2. * x2)/r
-    print
-    '''
     
     return np.array([x2, val_fin], float)
 
@@ -45,7 +34,7 @@ def dens():
     
     '''
     
-    rsol = integrate.odeint(solvr, [W0 * sig2,0.01], rrange)
+    rsol = integrate.odeint(solvr, [W0 * sig2,0.01], rrange, hmax = 0.0001,mxstep=500)
     w    = np.column_stack((rrange, rsol[:,0], rsol[:,1]))
     np.savetxt("test_sols.txt", w, fmt="%.9e")
     return rsol
@@ -85,6 +74,35 @@ print
 print "rho0 is:", rho0
 print "r0 is:", r0
 print
+
+'''
+# plotting as color to compare rho and psi plots
+colors = cm.rainbow(np.linspace(0, 1, len(rvals)))
+
+plt.ion()
+fig = plt.figure(1,figsize=(14,6))
+plt.subplot(121)
+ax  = plt.gca()
+ax.scatter(rvals/r0 ,rho_vals/rho0 , color=colors)
+ax.set_xscale('log')
+ax.set_yscale('log')
+plt.xlabel("$\mathrm{log}(r/r_0)$",fontsize=20)
+plt.ylabel(r"$\mathrm{log(\rho/\rho_0})$",fontsize=20)
+plt.ylim(1e-15, 1e1)
+#plt.xlim(4.5e0,1.1e1)
+
+plt.subplot(122)
+ax2  = plt.gca()
+ax2.scatter(rvals/r0, psi_vals, color = colors)
+ax2.set_xscale('log')
+ax2.set_yscale('log')
+plt.xlabel("$\mathrm{log}(r/r_0)$",fontsize=20)
+plt.ylabel(r"$\mathrm{log}(\Psi(r))$",fontsize=20)
+plt.ylim(1e-5, 1e1)
+#plt.xlim(4.5e0,1.1e1)
+
+plt.suptitle("$W_0 = {0}$".format(W0), fontsize=15)
+'''
 
 plt.ion()
 plt.loglog(rvals/r0,rho_vals/rho0, color = 'purple', lw = 3., label= "$W_0 = 12.0$ ")
