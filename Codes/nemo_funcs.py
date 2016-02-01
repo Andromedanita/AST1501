@@ -6,6 +6,7 @@ from   galpy.potential   import LogarithmicHaloPotential
 from   galpy.util        import bovy_conversion
 from   scipy             import optimize, special
 from   galpy.util        import bovy_plot, bovy_coords, bovy_conversion
+from   galpy.potential   import MWPotential2014, PowerSphericalPotentialwCutoff, MiyamotoNagaiPotential, NFWPotential
 import os
 import copy
 
@@ -293,6 +294,16 @@ def strip_time(filename_tail):
 
 
 def output_cut(pos, vel, q, delta, C_use, ro, vo, N, var):
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+        -------------------------------------------------------
+        
+    """
     
     m = 0
     
@@ -311,6 +322,17 @@ def output_cut(pos, vel, q, delta, C_use, ro, vo, N, var):
 
 def nemo_plot(x,y,xlabel,ylabel):
     
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+        
+    """
+    
     plt.ion()
     plt.plot(x,y,linewidth=2,color='blue')
     plt.xlabel(xlabel,fontsize=20)
@@ -318,6 +340,17 @@ def nemo_plot(x,y,xlabel,ylabel):
 
 
 def tail_cut(data):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+    
+    Returns:
+    -------------------------------------------------------
+        
+    """
     
     thetar = data[:,6]
     thetar = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
@@ -327,6 +360,18 @@ def tail_cut(data):
 
 
 def hist_fig4(filename):
+
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+        
+    """
+    
     data    = np.loadtxt(filename)
     thetar  = data[:,6]
     thetar  = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
@@ -350,12 +395,26 @@ def hist_fig4(filename):
 
 
 def fig5(filename):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+    
+    """
+    
     dO, dangle, del_freq, del_theta, ts = strip_time(filename)
+    
     #Direction in which the stream spreads
     dO4dir = copy.copy(dO)
     dO4dir[:,dO4dir[:,0] < 0.]*= -1.
     dOdir  = np.median(dO4dir,axis=1)
     dOdir /= np.sqrt(np.sum(dOdir**2.))
+    
     #Times
     valx  = np.fabs(np.dot(dangle.T,dOdir))
     valy  = np.fabs(np.dot(dO.T,dOdir))
@@ -363,6 +422,18 @@ def fig5(filename):
 
 
 def gausstimesvalue(params,vals,nologsum=False):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+    
+    """
+    
     tmean  = np.exp(params[0])
     tsig   = np.exp(params[1])
     norm   = tsig**2. * np.exp(-tmean**2./2./tsig**2.)+tsig*np.sqrt(np.pi/2.) * tmean * (1.+special.erf(tmean/np.sqrt(2.)/tsig))
@@ -373,22 +444,60 @@ def gausstimesvalue(params,vals,nologsum=False):
 
 
 def plot_gauss(values):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+    
+    """
 
     import matplotlib.mlab as mlab
     mean     = np.mean(values)
     variance = np.var(values)
     sigma    = np.sqrt(variance)
     mu_sig   = mean/sigma
-    #x        = np.linspace(np.min(values), np.max(values),200)
-    xs       = np.linspace(0., 0.8, 1001)
+    xs       = np.linspace(0.05, np.max(values),200)
+    #xs       = np.linspace(0., 0.8, 1001)
     plt.plot(xs, mlab.normpdf(xs,mean,sigma), 'r--', lw=2)
+    
+    bestfit= optimize.fmin_powell(gausstimesvalue, np.array([np.log(mean*2.), np.log(np.std(values))]), args=(values,))
+    bovy_plot.bovy_plot(xs, gausstimesvalue(bestfit, xs, nologsum=True), '-', color='blue', overplot=True, lw=2., zorder=1)
+    
+    print
+    print "Best fit of form output parameters:"
+    print "mean is:"  ,np.exp(bestfit[0])
+    print "sigma is:" ,np.exp(bestfit[1])
+    print "mu sigma is:", np.exp(bestfit[0])/np.exp(bestfit[1])
+
+    print
+    print "Gaussian output parameters:"
     print "mean  is:"   , mean
     print "sigma is:"   , sigma
-    print "mu_sigma is:", mu_sig
+    print "mu sigma is:", mu_sig
+    print
 
-    bestfit= optimize.fmin_powell(gausstimesvalue, np.array([np.log(mean*2.), np.log(np.std(values))]), args=(values,))
-    print np.exp(bestfit)
-    bovy_plot.bovy_plot(xs, gausstimesvalue(bestfit, xs, nologsum=True), '-', color='blue', overplot=True, lw=2., zorder=1)
+
+def nemo_pot_params(duration, pot_type, Vo, Ro, q=None):
+    
+    from galpy.potential import nemo_accname, nemo_accpars
+    from calc_shift_nemo import *
+    
+    '''
+    bp = PowerSphericalPotentialwCutoff(alpha=1.8,rc=1.9/8.,normalize=0.05)
+    mp = MiyamotoNagaiPotential(a=3./8.,b=0.28/8.,normalize=.6)
+    np = NFWPotential(a=16/8.,normalize=.35)
+    MWPotential2014 = [bp,mp,np]
+
+    accname  = nemo_accname(MWPotential2014)
+    accparse = nemo_accpars(MWPotential2014, Vo, Ro)
+    '''
+    data = calc_init_pos(duration, pot_type, Vo, Ro, q=q)
+    return data
 
 
 
