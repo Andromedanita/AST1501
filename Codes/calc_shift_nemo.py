@@ -1,10 +1,10 @@
-from   GD1_funcs    import *
-import mw_transform as     mw
-import scipy        as     sp
-from galpy.util import bovy_conversion
+from   GD1_funcs       import *
+import mw_transform    as     mw
+import scipy           as     sp
+from   galpy.util      import bovy_conversion
+from   galpy.potential import MWPotential2014
 
-ro = 8.
-vo = 220.
+
 q  = 0.9
 
 def actualtime_to_nemotime(t):
@@ -29,32 +29,44 @@ def nemotime_to_actualtime(tunit):
     return val
 
 
-ts   = 1000 # number of timesteps
-# we need to convert to galpy time units since its not in Gyrs
-time = np.linspace(0., nemotime_to_actualtime(5.125)/bovy_conversion.time_in_Gyr(vo,ro), ts)
-p    = potential.LogarithmicHaloPotential(q = q, normalize = 1)
+def calc_init_pos(duration, pot_type, Vo, Ro, q=None):
 
-# the position and velocity of GD1 stream today in cartesian coordinates
-xnow, ynow, znow    = np.array([12.4,1.5,7.1])
-vxnow, vynow, vznow = np.array([107.0,-243.0,-105.0])
+    ro = Ro
+    vo = Vo
+    ts   = 1000 # number of timesteps
+    # we need to convert to galpy time units since its not in Gyrs
+    time = np.linspace(0., nemotime_to_actualtime(duration)/bovy_conversion.time_in_Gyr(vo,ro), ts)
+    
+    if pot_type == "Log":
+        p    = potential.LogarithmicHaloPotential(q = q, normalize = 1)
+    
+    elif pot_type == "MW2014":
+        from   galpy.potential   import MWPotential2014, PowerSphericalPotentialwCutoff, MiyamotoNagaiPotential, NFWPotential
+        bp  = PowerSphericalPotentialwCutoff(alpha=1.8,rc=1.9/8.,normalize=0.05)
+        mp  = MiyamotoNagaiPotential(a=3./8.,b=0.28/8.,normalize=.6)
+        npp = NFWPotential(a=16/8.,normalize=.35)
+        p   = MWPotential2014 = [bp,mp,npp]
 
-# the position and velocity of GD1 stream today in cylindrical coordinates
-Ri,zcyli,phii  = xyz_to_cyl(xnow,ynow,znow)
-vri,vti,vzcyli = vxvyvz_to_vrvtvz(xnow,ynow,znow,-vxnow, -vynow, -vznow)
+    # the position and velocity of GD1 stream today in cartesian coordinates
+    xnow, ynow, znow    = np.array([12.4,1.5,7.1])
+    vxnow, vynow, vznow = np.array([107.0,-243.0,-105.0])
 
-# initializing the orbit
-o = Orbit(vxvv=[Ri/ro, vri/vo, vti/vo, zcyli/ro, vzcyli/vo, phii], ro=ro, vo=vo)
-o.integrate(time,p)
+    # the position and velocity of GD1 stream today in cylindrical coordinates
+    Ri,zcyli,phii  = xyz_to_cyl(xnow,ynow,znow)
+    vri,vti,vzcyli = vxvyvz_to_vrvtvz(xnow,ynow,znow,-vxnow, -vynow, -vznow)
 
+    # initializing the orbit
+    o = Orbit(vxvv=[Ri/ro, vri/vo, vti/vo, zcyli/ro, vzcyli/vo, phii], ro=ro, vo=vo)
+    o.integrate(time,p)
 
-print
-print "x start is:", o.x(time[-1], ro = ro, obs= [ro,0.,0.])
-print "y start is:", o.y(time[-1], ro = ro, obs= [ro,0.,0.])
-print "z start is:", o.z(time[-1], ro = ro, obs= [ro,0.,0.])
+    x_init = o.x(time[-1], ro = ro, obs= [ro,0.,0.])
+    y_init = o.y(time[-1], ro = ro, obs= [ro,0.,0.])
+    z_init = o.z(time[-1], ro = ro, obs= [ro,0.,0.])
+    
+    vx_init = -o.vx(time[ts-1],ro = ro,obs= [ro,0.,0.])
+    vy_init = -o.vy(time[ts-1],ro = ro,obs= [ro,0.,0.])
+    vz_init = -o.vz(time[ts-1],ro = ro,obs= [ro,0.,0.])
 
-print "vx start is:", -o.vx(time[ts-1],ro = ro,obs= [ro,0.,0.])
-print "vy start is:", -o.vy(time[ts-1],ro = ro,obs= [ro,0.,0.])
-print "vz start is:", -o.vz(time[ts-1],ro = ro,obs= [ro,0.,0.])
-
+    return np.array([x_init, y_init, z_init, vx_init, vy_init, vz_init])
 
 
