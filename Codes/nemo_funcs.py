@@ -462,7 +462,6 @@ def plot_gauss(values):
     sigma    = np.sqrt(variance)
     mu_sig   = mean/sigma
     xs       = np.linspace(0.05, np.max(values),200)
-    #xs       = np.linspace(0., 0.8, 1001)
     plt.plot(xs, mlab.normpdf(xs,mean,sigma), 'r--', lw=2)
     
     bestfit= optimize.fmin_powell(gausstimesvalue, np.array([np.log(mean*2.), np.log(np.std(values))]), args=(values,))
@@ -499,6 +498,80 @@ def nemo_pot_params(duration, pot_type, Vo, Ro, q=None):
     data = calc_init_pos(duration, pot_type, Vo, Ro, q=q)
     return data
 
+
+
+def mass_rt_interp(M):
+    
+    '''
+    Parameters
+    --------------------------------------------------------------------
+        M: mass
+        
+    Return 
+    --------------------------------------------------------------------
+        tidal radius(rt) for the given M using the interpolation as well
+        as rt(M) obtained from fitting a 3rd order polynomial
+    '''
+    
+    from scipy import interpolate
+    
+    mass    = np.array([2e4,2e5,2e6,2e7,2e8,2e9])
+    rt      = np.array([0.07,0.14,0.32,0.69,1.48,3.20])
+    
+    z = np.polyfit(mass, rt, 3)
+    p = np.poly1d(z)
+    
+    def fit(mass):
+        val = (p[3] * (mass**3)) + (p[2]*(mass**2)) + (p[1]*mass) + p[0]
+        return val
+    
+    func_interp  = sp.interpolate.interp1d(mass, rt)
+    
+    return func_interp(M), fit(M)
+
+
+
+def mass_eps_interp(M):
+
+    '''
+    Parameters
+    --------------------------------------------------------------------
+        M: mass
+    
+    Return
+    --------------------------------------------------------------------
+        softening length (epsilon) for the given M using the 
+        interpolation as well as epsilon(M) obtained from fitting a 3rd 
+        order polynomial
+    '''
+    
+    from scipy import interpolate
+
+    mass    = np.array([2e4,2e5,2e6,2e7,2e8,2e9])
+    eps     = np.array([1.5,3.,6.,14.,30.,66.])
+
+    z = np.polyfit(mass, eps, 3)
+    p = np.poly1d(z)
+    
+    def fit(mass):
+        val = (p[3] * (mass**3)) + (p[2]*(mass**2)) + (p[1]*mass) + p[0]
+        return val
+
+    func_interp  = sp.interpolate.interp1d(mass, eps)
+
+    return func_interp(M), fit(M)
+
+
+
+'''
+mkking out=gd1.nemo nbody=1000 W0=2. mass=20000 r_t=0.07 WD_units=t
+    
+snapshift gd1.nemo gd1_shifted.nemo rshift=-6.19657396,-18.21586066,-1.220889219746206 vshift=-191.07857107,-49.5371518,-147.14676698933675
+    
+gyrfalcON in=gd1_shifted.nemo out=gd1_evol.nemo tstop=5.125 eps=0.0015 step=0.125 kmax=6 Nlev=10 fac=0.01 accname=PowSphwCut+MiyamotoNagai+NFW accpars=0,1001.79126907,1.8,1.9#0,306770.418682,3.0,0.28#0,16.0,162.958241887
+
+s2a gd1_evol.nemo gd1_evol.dat
+'''
 
 
 
