@@ -262,6 +262,7 @@ def strip_time(filename_tail):
     """
     
     data      = np.loadtxt(filename_tail)
+    #data      = data.T
     thetar    = data[:,6]
     thetar    = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
     indx      = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
@@ -564,11 +565,12 @@ def mass_eps_interp(M):
 
 
 '''
-mkking out=gd1.nemo nbody=1000 W0=2. mass=20000 r_t=0.07 WD_units=t
+mkking out=gd1.nemo nbody=1 W0=2. mass=20000 r_t=0.07 WD_units=t
     
-snapshift gd1.nemo gd1_shifted.nemo rshift=-6.19657396,-18.21586066,-1.220889219746206 vshift=-191.07857107,-49.5371518,-147.14676698933675
-    
-gyrfalcON in=gd1_shifted.nemo out=gd1_evol.nemo tstop=5.125 eps=0.0015 step=0.125 kmax=6 Nlev=10 fac=0.01 accname=PowSphwCut+MiyamotoNagai+NFW accpars=0,1001.79126907,1.8,1.9#0,306770.418682,3.0,0.28#0,16.0,162.958241887
+snapshift gd1.nemo gd1_shifted.nemo rshift=13.95209126332265193,1.299800690425371164,10.41018639679868407 vshift=-100.6758702857176786,-242.0167773957586235,-17.19903761757237248
+
+
+gyrfalcON in=gd1_shifted.nemo out=gd1_evol.nemo tstop=5.0 eps=0.0015 step=0.125 kmax=6 Nlev=10 fac=0.01 accname=PowSphwCut+MiyamotoNagai+NFW accpars=0,1001.79126907,1.8,1.9#0,306770.418682,3.0,0.28#0,16.0,162.958241887
 
 s2a gd1_evol.nemo gd1_evol.dat
 '''
