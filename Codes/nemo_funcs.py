@@ -4,8 +4,12 @@ from   GD1_funcs         import *
 from   galpy.actionAngle import actionAngleStaeckel, actionAngleIsochroneApprox
 from   galpy.potential   import LogarithmicHaloPotential
 from   galpy.util        import bovy_conversion
+from   scipy             import optimize, special
+from   galpy.util        import bovy_plot, bovy_coords, bovy_conversion
+from   galpy.potential   import MWPotential2014, PowerSphericalPotentialwCutoff, MiyamotoNagaiPotential, NFWPotential
 import os
 import copy
+
 
 #def run_nemo(output_name,num_part, w0, mass, rt, wd_units, output_shifted, xs, ys, zs, vxs, vys, vzs, output_evol, tstop, eps, step, kmax, Nlev, fac, accname, accparse, output_final):
 
@@ -258,6 +262,7 @@ def strip_time(filename_tail):
     """
     
     data      = np.loadtxt(filename_tail)
+    #data      = data.T
     thetar    = data[:,6]
     thetar    = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
     indx      = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
@@ -290,6 +295,16 @@ def strip_time(filename_tail):
 
 
 def output_cut(pos, vel, q, delta, C_use, ro, vo, N, var):
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+        -------------------------------------------------------
+        
+    """
     
     m = 0
     
@@ -308,6 +323,17 @@ def output_cut(pos, vel, q, delta, C_use, ro, vo, N, var):
 
 def nemo_plot(x,y,xlabel,ylabel):
     
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+        
+    """
+    
     plt.ion()
     plt.plot(x,y,linewidth=2,color='blue')
     plt.xlabel(xlabel,fontsize=20)
@@ -315,6 +341,17 @@ def nemo_plot(x,y,xlabel,ylabel):
 
 
 def tail_cut(data):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+    
+    Returns:
+    -------------------------------------------------------
+        
+    """
     
     thetar = data[:,6]
     thetar = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
@@ -324,6 +361,18 @@ def tail_cut(data):
 
 
 def hist_fig4(filename):
+
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+        
+    """
+    
     data    = np.loadtxt(filename)
     thetar  = data[:,6]
     thetar  = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
@@ -347,32 +396,184 @@ def hist_fig4(filename):
 
 
 def fig5(filename):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+    
+    """
+    
     dO, dangle, del_freq, del_theta, ts = strip_time(filename)
+    
     #Direction in which the stream spreads
     dO4dir = copy.copy(dO)
     dO4dir[:,dO4dir[:,0] < 0.]*= -1.
     dOdir  = np.median(dO4dir,axis=1)
     dOdir /= np.sqrt(np.sum(dOdir**2.))
+    
     #Times
     valx  = np.fabs(np.dot(dangle.T,dOdir))
     valy  = np.fabs(np.dot(dO.T,dOdir))
     return valx, valy
 
 
+def gausstimesvalue(params,vals,nologsum=False):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+    
+    """
+    
+    tmean  = np.exp(params[0])
+    tsig   = np.exp(params[1])
+    norm   = tsig**2. * np.exp(-tmean**2./2./tsig**2.)+tsig*np.sqrt(np.pi/2.) * tmean * (1.+special.erf(tmean/np.sqrt(2.)/tsig))
+    if nologsum:
+        return np.fabs(vals)/norm * np.exp(-(vals-tmean)**2./2./tsig**2.)
+    else:
+        return -np.sum(np.log(np.fabs(vals)/norm * np.exp(-(vals-tmean)**2./2./tsig**2.)))
+
 
 def plot_gauss(values):
+    
+    """
+    Parameter:
+    -------------------------------------------------------
+        
+        
+        
+    Returns:
+    -------------------------------------------------------
+    
+    """
 
     import matplotlib.mlab as mlab
     mean     = np.mean(values)
     variance = np.var(values)
     sigma    = np.sqrt(variance)
     mu_sig   = mean/sigma
-    #x        = np.linspace(np.min(values), np.max(values),200)
-    x        = np.linspace(0., 0.45, 200)
-    plt.plot(x,mlab.normpdf(x,mean,sigma), 'r', lw=2)
-    print "mean  is:", mean
-    print "sigma is:", sigma
-    print "mu_sigma is:", mu_sig
+    xs       = np.linspace(0.05, np.max(values),200)
+    plt.plot(xs, mlab.normpdf(xs,mean,sigma), 'r--', lw=2)
+    
+    bestfit= optimize.fmin_powell(gausstimesvalue, np.array([np.log(mean*2.), np.log(np.std(values))]), args=(values,))
+    bovy_plot.bovy_plot(xs, gausstimesvalue(bestfit, xs, nologsum=True), '-', color='blue', overplot=True, lw=2., zorder=1)
+    
+    print
+    print "Best fit of form output parameters:"
+    print "mean is:"  ,np.exp(bestfit[0])
+    print "sigma is:" ,np.exp(bestfit[1])
+    print "mu sigma is:", np.exp(bestfit[0])/np.exp(bestfit[1])
+
+    print
+    print "Gaussian output parameters:"
+    print "mean  is:"   , mean
+    print "sigma is:"   , sigma
+    print "mu sigma is:", mu_sig
+    print
+
+
+def nemo_pot_params(duration, pot_type, Vo, Ro, q=None):
+    
+    from galpy.potential import nemo_accname, nemo_accpars
+    from calc_shift_nemo import *
+    
+    '''
+    bp = PowerSphericalPotentialwCutoff(alpha=1.8,rc=1.9/8.,normalize=0.05)
+    mp = MiyamotoNagaiPotential(a=3./8.,b=0.28/8.,normalize=.6)
+    np = NFWPotential(a=16/8.,normalize=.35)
+    MWPotential2014 = [bp,mp,np]
+
+    accname  = nemo_accname(MWPotential2014)
+    accparse = nemo_accpars(MWPotential2014, Vo, Ro)
+    '''
+    data = calc_init_pos(duration, pot_type, Vo, Ro, q=q)
+    return data
+
+
+
+def mass_rt_interp(M):
+    
+    '''
+    Parameters
+    --------------------------------------------------------------------
+        M: mass
+        
+    Return 
+    --------------------------------------------------------------------
+        tidal radius(rt) for the given M using the interpolation as well
+        as rt(M) obtained from fitting a 3rd order polynomial
+    '''
+    
+    from scipy import interpolate
+    
+    mass    = np.array([2e4,2e5,2e6,2e7,2e8,2e9])
+    rt      = np.array([0.07,0.14,0.32,0.69,1.48,3.20])
+    
+    z = np.polyfit(mass, rt, 3)
+    p = np.poly1d(z)
+    
+    def fit(mass):
+        val = (p[3] * (mass**3)) + (p[2]*(mass**2)) + (p[1]*mass) + p[0]
+        return val
+    
+    func_interp  = sp.interpolate.interp1d(mass, rt)
+    
+    return func_interp(M), fit(M)
+
+
+
+def mass_eps_interp(M):
+
+    '''
+    Parameters
+    --------------------------------------------------------------------
+        M: mass
+    
+    Return
+    --------------------------------------------------------------------
+        softening length (epsilon) for the given M using the 
+        interpolation as well as epsilon(M) obtained from fitting a 3rd 
+        order polynomial
+    '''
+    
+    from scipy import interpolate
+
+    mass    = np.array([2e4,2e5,2e6,2e7,2e8,2e9])
+    eps     = np.array([1.5,3.,6.,14.,30.,66.])
+
+    z = np.polyfit(mass, eps, 3)
+    p = np.poly1d(z)
+    
+    def fit(mass):
+        val = (p[3] * (mass**3)) + (p[2]*(mass**2)) + (p[1]*mass) + p[0]
+        return val
+
+    func_interp  = sp.interpolate.interp1d(mass, eps)
+
+    return func_interp(M), fit(M)
+
+
+
+'''
+mkking out=gd1.nemo nbody=1 W0=2. mass=20000 r_t=0.07 WD_units=t
+    
+snapshift gd1.nemo gd1_shifted.nemo rshift=13.95209126332265193,1.299800690425371164,10.41018639679868407 vshift=-100.6758702857176786,-242.0167773957586235,-17.19903761757237248
+
+
+gyrfalcON in=gd1_shifted.nemo out=gd1_evol.nemo tstop=5.0 eps=0.0015 step=0.125 kmax=6 Nlev=10 fac=0.01 accname=PowSphwCut+MiyamotoNagai+NFW accpars=0,1001.79126907,1.8,1.9#0,306770.418682,3.0,0.28#0,16.0,162.958241887
+
+s2a gd1_evol.nemo gd1_evol.dat
+'''
 
 
 
