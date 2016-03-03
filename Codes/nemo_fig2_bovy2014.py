@@ -4,8 +4,7 @@ import os
 import sys
 from nemo_funcs import *
 
-sys.path.insert(0, '/Users/anita/dyn-modeling-streams-2014/sim')
-#import split_snaps
+sys.path.insert(0, '/home/bahmanyar/dyn-modeling-streams-2014/sim')
 from split_snaps import split_snaps
 
 def funcc(filename, dir):
@@ -37,7 +36,8 @@ def funcc(filename, dir):
     
     # copying the splitted snaps into the specified directory
     print "Copying files..."
-    os.system('cp ' +  filename_dir + basefile + '* ' + dir)
+    #os.system('cp ' +  filename_dir + basefile + '* ' + dir)
+    os.system('cp ' + basefile + '* ' + dir)
     print "Done copying files..."
     
     # reading final snapshot values
@@ -45,13 +45,16 @@ def funcc(filename, dir):
     mass, pos, vel = nemo_read_output(basefile + '_00041.dat')
 
     # computing action-angle-frequency of the tail for the final snapshot
+
+    print "Stated 2nd set of action-angle-frequencies..."
+    val_tail2 = nemo_coord_convert(pos,vel, 0.9, 1.20, True, 8., 220., 5000, 10000)
+    print "Done first set of action-angle-frequencies..."
+
     print "Stated 1st set of action-angle-frequencies..."
     val_tail1 = nemo_coord_convert(pos,vel, 0.9, 1.20, True, 8., 220., 0, 5000)
     print "Done first set of action-angle-frequencies..."
     
-    print "Stated 2nd set of action-angle-frequencies..."
-    val_tail2 = nemo_coord_convert(pos,vel, 0.9, 1.20, True, 8., 220., 5000, 10000)
-    print "Done first set of action-angle-frequencies..."
+    
 
 
     # saving the action-angle for the tail for both sets of output
