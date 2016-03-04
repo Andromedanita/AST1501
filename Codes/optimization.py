@@ -96,7 +96,7 @@ def optimizer_func(input,Vc,q):
     # choose a value of phi2 for the given phi1 (phi1 should stay constant from
     # initial conditions obtained above in degrees
     
-    phi1i = phi12i_kop[0]
+    phi1i = -30. #phi12i_kop[0]
     phi2i = phi2
     
     
@@ -252,9 +252,12 @@ def optimize(Vc,q):
 
     bnds       = ((-90., 90.), (0., None), (None,None), (None,None), (None,None))
     init_guess = (phi12i_kop[1], di_kop, mu_array[0], mu_array[1], Vrad)
-    
-    val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5}, callback=callbackF)
-    
+    #init_guess = (0.2, 16., mu_array[0], mu_array[1], Vrad)  
+
+    #val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'BFGS', bounds = bnds, options={'maxiter':5,'disp': True,'maxfun':5}, callback=callbackF)
+    val = sp.optimize.minimize(optimizer_func, init_guess, args=(Vc,q), method = 'SLSQP', bounds = bnds, options={'maxiter':5,'dis\
+    p': True,'maxfun':5}, callback=callbackF)
+
     return val.x
 
 
@@ -272,8 +275,17 @@ if __name__ == '__main__':
     mu_array, Vrad = vxvyvz_to_pmphi12(xi_kop, yi_kop, zi_kop, vxi_kop, vyi_kop, vzi_kop, True)
 
     # Vc and q arrays
-    Vc_list = np.linspace(160.,300.,20)
-    q_list  = np.linspace(0.4,1.6,20)
+    #Vc_list = np.linspace(160.,300.,20)
+    #q_list  = np.linspace(0.4,1.6,20)
+    #q_list  = np.arange(0.5,1.5,0.1)
+    #Vc_list = np.arange(160,300,15)
+
+    #q_list  = np.arange(0.5,1.5,0.05)
+    #Vc_list = np.arange(160,280,6)
+    #q_list  = np.linspace(0.4,1.6,30)    
+    #Vc_list = np.linspace(150.,300.,30)
+    q_list  = np.arange(0.5,1.5,0.01)
+    Vc_list = np.arange(151.,300,1.5)
 
     table   = [[0] * len(Vc_list) for i in range(len(q_list))]
     table_contour = np.zeros([len(Vc_list),len(q_list)])
@@ -286,7 +298,7 @@ if __name__ == '__main__':
 
 
 
-    file_Name  = "corrected_table_optimization.dat"
+    file_Name  = "TNCmethod_table_optimization_100bins_phi1_minus30_phi2_minus_2.dat"
     fileObject = open(file_Name,'wb')
     pickle.dump(table,fileObject)
     fileObject.close()

@@ -82,13 +82,21 @@ def contour_singlebox(phi2, d, mu1, mu2, Vrad, Vc, q):
     return L_total
 
 
-Vc_list = np.linspace(160.,300.,20)
-q_list  = np.linspace(0.4,1.6,20)
+#Vc_list = np.linspace(160.,300.,20)
+#q_list  = np.linspace(0.4,1.6,20)
+#Vc_list = np.arange(160,300,15) 
+#q_list  = np.arange(0.5,1.5,0.1)
+#q_list  = np.arange(0.5,1.5,0.05)
+#Vc_list = np.arange(160,280,6)
+q_list  = np.arange(0.5,1.5,0.01)
+Vc_list = np.arange(151.,300,1.5)
 
 table = np.zeros([len(Vc_list),len(q_list)])
 
 import pickle
-fileObject = open("/Users/anita/Desktop/data_files/table_optimization_5D.dat",'r')
+#fileObject = open("TNCmethod_table_optimization.dat",'r')
+#fileObject = open("TNCmethod_table_optimization_finergrid.dat",'r')
+fileObject = open("TNCmethod_table_optimization_100bins_phi1_minus30_phi2_minus_2.dat",'r')
 params     = pickle.load(fileObject)
 
 for i in range(len(Vc_list)):
