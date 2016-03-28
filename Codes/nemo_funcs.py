@@ -1,3 +1,6 @@
+# Anita Bahmanyar
+# March 2016, U of T
+
 import numpy             as     np
 import matplotlib.pylab  as     plt
 from   GD1_funcs         import *
@@ -10,8 +13,6 @@ from   galpy.potential   import MWPotential2014, PowerSphericalPotentialwCutoff,
 import os
 import copy
 
-
-#def run_nemo(output_name,num_part, w0, mass, rt, wd_units, output_shifted, xs, ys, zs, vxs, vys, vzs, output_evol, tstop, eps, step, kmax, Nlev, fac, accname, accparse, output_final):
 
 def run_nemo(num_part, w0, mass, rt, wd_units, xs, ys, zs, vxs, vys, vzs, tstop, eps, step, kmax, Nlev, fac, accname, accpars):
     """
@@ -85,7 +86,7 @@ def run_nemo(num_part, w0, mass, rt, wd_units, xs, ys, zs, vxs, vys, vzs, tstop,
     os.system('mkking' + ' ' +'out=gd1.nemo'  + ' ' + 'nbody=' + str(num_part) + ' ' + 'W0=' + str(w0) + ' ' + 'mass=' + str(mass) + ' ' + 'r_t=' + str(rt) + ' ' + 'WD_units=' + wd_units)
     print "Done first line"
     os.system('snapshift' + ' ' +  'gd1.nemo' + ' ' + 'gd1_shifted.nemo' + ' ' + 'rshift=' + str(xs) + ',' + str(ys) + ',' + str(zs) + ' ' + 'vshift=' + str(vxs) + ',' + str(vys) + ',' + str(vzs))
-    #print 'snapshift' + ' ' +  'gd1.nemo' + ' ' + 'gd1_shifted.nemo' + ' ' + 'rshift=' + str(xs) + ',' + str(ys) + ',' + str(zs) + 'vshift=' + str(vxs) + ',' + str(vys) + ',' + str(vzs)
+ 
     print "Done second line"
 
     print 'gyrfalcON' + ' ' + 'in=gd1_shifted.nemo' + ' ' + 'out=gd1_evol.nemo'  + ' ' + 'tstop=' + str(tstop) + ' ' + 'eps=' + str(eps) + ' ' + 'step=' + str(step) + ' ' +'kmax=' + \
@@ -114,7 +115,7 @@ def nemo_read_output(filename):
         are in array format)
     """
 
-    data = np.loadtxt(filename, delimiter=',')
+    data = np.loadtxt(filename)#, delimiter=',')
     mass = data.T[0]
     pos  = data.T[1:4]
     vel  = data.T[4:7]
@@ -345,12 +346,16 @@ def tail_cut(data):
     """
     Parameter:
     -------------------------------------------------------
+        data : concatenated simulation data
         
         
     
     Returns:
     -------------------------------------------------------
-        
+        index of the values that are not cut as in the
+        tail cut process. This cuts the particles close to
+        the stream out so that we get the progenitor at 
+        the centre of the tails.
     """
     
     thetar = data[:,6]
@@ -377,6 +382,7 @@ def hist_fig4(filename):
     thetar  = data[:,6]
     thetar  = (np.pi+(thetar-np.median(thetar))) % (2.*np.pi)
     indx    = np.fabs(thetar-np.pi) > (5.*np.median(np.fabs(thetar-np.median(thetar))))
+    
     #Frequencies
     Or  = data[:,3]
     Op  = data[:,4]
@@ -386,12 +392,15 @@ def hist_fig4(filename):
     dOz = Oz[indx]-np.median(Oz)
     dO  = np.vstack((dOr,dOp,dOz))*bovy_conversion.freq_in_Gyr(220.,8.)
     dO4dir = copy.copy(dO)
-    dO4dir[:,dO4dir[:,0] < 0.]*= -1.
-    dOdir  = np.median(dO4dir,axis=1)
+    dO4dir[:,dO4dir[:,0] < 0.] *= -1.
+    dOdir  = np.median(dO4dir, axis=1)
     dOdir /= np.sqrt(np.sum(dOdir**2.))
     dO1d   = np.dot(dOdir,dO)
-    dO1d[dO1d < 0.]*= -1.
-    return dO1d
+    dO1d[dO1d < 0.] *= -1.
+    
+    dOpar = np.dot(dOdir,dO)
+    
+    return dO1d, dOdir #dOpar
 
 
 
@@ -412,14 +421,78 @@ def fig5(filename):
     
     #Direction in which the stream spreads
     dO4dir = copy.copy(dO)
-    dO4dir[:,dO4dir[:,0] < 0.]*= -1.
+    dO4dir[:,dO4dir[:,0] < 0.] *= -1.
     dOdir  = np.median(dO4dir,axis=1)
     dOdir /= np.sqrt(np.sum(dOdir**2.))
     
-    #Times
+    # valx : Delta_theta_parallel
+    # valy : Delta_omega_parallel
     valx  = np.fabs(np.dot(dangle.T,dOdir))
     valy  = np.fabs(np.dot(dO.T,dOdir))
     return valx, valy
+
+
+
+  
+def prob_Oparapar(tdisrupt, i, j, n, ptype):
+    """
+    Parameter:
+    -------------------------------------------------------
+        tdisrupt: disruption time in Gyr
+        
+        i, j : index of Omega and Theta, respectivle
+               This is so that it can be used with 
+               arrays and for loops easily
+        
+        n: number of points in omega and theta arrays
+        
+        ptype: type of the probability of ts
+                p(ts) can be either of:
+                1) Gaussian
+                2) 1/ts
+                3) ts
+        
+        
+    Returns:
+    -------------------------------------------------------
+        Distribution of  parallel, the frequency
+        offset between stream members and the progenitor 
+        given the angle offset  theta parallel
+    """
+    
+    Omega_par = np.linspace(0.1,0.4,n)
+    theta_par = np.linspace(0.01,1.4,n)
+    
+    # these values are obtained from stream df improvements
+    # from galpy. These are such that mu = meam/std = 6
+
+    mean_O   = 0.192340929121
+    sigma2_O = 0.0010276398059802503
+    print "mu is:", mean_O/np.sqrt(sigma2_O)
+  
+    ts     = theta_par[j]/Omega_par[i]
+    print "ts:", ts
+    
+    
+    if (ts < tdisrupt and ts >= 0.):
+        p_omega = np.exp(-0.5 * (Omega_par[i]-mean_O)**2./sigma2_O)/np.sqrt(sigma2_O)
+    
+    else:
+        p_omega = 0.
+
+    
+    if ptype == "Gauss":
+        p_omegapar_thetapar = (1./Omega_par[i]) * p_omega
+    
+    elif ptype == "one_over_ts":
+        p_omegapar_thetapar = (1./theta_par[j]) * p_omega
+
+    elif ptype == "ts":
+        p_omegapar_thetapar = ts * p_omega
+    
+    return p_omegapar_thetapar
+
+
 
 
 def gausstimesvalue(params,vals,nologsum=False):
@@ -470,8 +543,8 @@ def plot_gauss(values):
     
     print
     print "Best fit of form output parameters:"
-    print "mean is:"  ,np.exp(bestfit[0])
-    print "sigma is:" ,np.exp(bestfit[1])
+    print "mean is:"    ,np.exp(bestfit[0])
+    print "sigma is:"   ,np.exp(bestfit[1])
     print "mu sigma is:", np.exp(bestfit[0])/np.exp(bestfit[1])
 
     print
@@ -565,6 +638,7 @@ def mass_eps_interp(M):
 
 
 '''
+How to run nemo simulation
 mkking out=gd1.nemo nbody=1 W0=2. mass=20000 r_t=0.07 WD_units=t
     
 snapshift gd1.nemo gd1_shifted.nemo rshift=13.95209126332265193,1.299800690425371164,10.41018639679868407 vshift=-100.6758702857176786,-242.0167773957586235,-17.19903761757237248
