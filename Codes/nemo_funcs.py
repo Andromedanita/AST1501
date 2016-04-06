@@ -493,6 +493,163 @@ def prob_Oparapar(tdisrupt, i, j, n, ptype):
     return p_omegapar_thetapar
 
 
+def normalized_contour_max1(ptype, n):
+    
+    """
+    Parameters
+    -------------------------------------------------------
+        ptype: type of the probability. It can be either
+                "Gauss", "one_over_ts" or "ts"
+                
+        n: number of points in theta and omega arrays
+    
+    Return
+    -------------------------------------------------------
+        val:     non-normalized values of the 2D table.
+        
+        new_val: normalized values fo the 2D table
+                 such that the maximum value of each
+                 vertical column is 1.
+                 
+        It also plots the normalized density plot.
+    """
+    
+    omega_par = np.linspace(0.1,0.4,n)
+    theta_par = np.linspace(0.01,1.4,n)
+    
+    
+    vals     = np.zeros((n,n))
+    Nlist    = []
+    new_vals = []
+
+
+    # calculating the 2D table of distribution
+    for i in range(n):
+        for j in range(n):
+            vals[i][j] = prob_Oparapar(5.,i, j, n, ptype)
+
+
+    # calculating the normalization A
+    for i in range(n):
+        xx = (np.max(vals.T[i]))
+        Nlist.append(1./xx)
+
+    # calculating the normalized values
+    for i in range(n):
+        xx = vals.T[i] * Nlist[i]
+        new_vals.append(xx)
+
+    new_vals = np.array(new_vals)
+
+    plt.ion()
+    plt.imshow(new_vals.T, interpolation='nearest', origin="lower", extent=(theta_par.min(), theta_par.max(), omega_par.min(), omega_par.max()),aspect='auto')
+
+    plt.xlabel(r"$\theta_{||}$",fontsize=20)
+    plt.ylabel(r"$\Omega_{||}$", fontsize=20)
+    plt.title("$p(t_s) = {0}$.formar(ptype), max of each column is 1", fontsize=15)
+    return vals, new_vals
+
+
+def integral_plots(vals, new_vals, n):
+    
+    """
+    Parameters
+    -------------------------------------------------------
+        vals:   non-normalized values of the table
+        
+        new_vals: normalized values of the table
+                  such that the maximum of each vertical
+                  column is 1.
+        
+        n: number of points in theta and omega arrays
+        (so the size of the 2D table is n x n)
+        
+        
+    Return
+    -------------------------------------------------------
+        Plots a density plot of the table using imshow
+        of the normalized table and also plots the integral 
+        of the table along each axis (these are the integrals
+        of the non-normalized values)
+    """
+
+    import matplotlib.gridspec as gridspec
+    
+    omega_par = np.linspace(0.1,0.4,n)
+    theta_par = np.linspace(0.01,1.4,n)
+    
+    oo = []
+    tt = []
+    
+    # integral in left side (sum of each row)
+    for i in range(n):
+        oo.append(sum(vals[i]))
+    
+    # integral in bottom side (sum of columns)
+    for i in range(n):
+        tt.append(sum(vals.T[i]))
+
+    plt.ion()
+    plt.figure(figsize=(11,9))
+
+    gs  = gridspec.GridSpec(2, 2, width_ratios=[1,4],height_ratios=[4,1])
+    ax1 = plt.subplot(gs[0])
+    ax1.plot(oo,omega_par,  linewidth=2)
+    plt.ylabel(r"$\Omega_{||}$", fontsize=20)
+
+    ax2 = plt.subplot(gs[1])
+    plt.imshow(new_vals, interpolation='nearest', origin="lower", extent=(theta_par.min(), theta_par.max(), omega_par.min(), omega_par.max()),aspect='auto')
+    #plt.imshow(vals, interpolation='nearest', origin="lower", extent=(theta_par.min(), theta_par.max(), omega_par.min(), omega_par.max()),aspect='auto')
+    plt.colorbar()
+
+    plt.title("$P(t_s) \propto t_s $, maximum normalized to 1", fontsize=15)
+
+
+    ax4 = plt.subplot(gs[3])
+    ax4.plot(theta_par,tt, linewidth=2)
+    plt.xlabel(r"$\theta_{||}$",fontsize=20)
+
+
+
+def mean_freq_plot(ptype,n):
+    '''
+    Plotting the normalized contour (so that 
+    its maximum value is 1 in each vertical column)
+    and plotting the maximum of the contour to get the mean
+    offset black line.
+    '''
+
+    omega_par = np.linspace(0.1,0.4,n)
+    theta_par = np.linspace(0.01,1.4,n)
+
+    # need to transpose this to be useful
+    vals = normalized_contour_max1(ptype, n)
+    
+    # list including maximum values of contour
+    max_vals = []
+    
+    for i in range(len(theta_par)):
+        xx = (np.max(vals[i]))
+        max_vals.append(xx)
+
+
+    indx_vals = []
+    # finding the index of maximum values for omega_par
+    for i in range(n):
+            index = np.where(vals[i] == max_vals[i])
+            indx_vals.append(index)
+
+    omegapar_max_vals = []
+    for i in range(n):
+        omegapar_max_vals.append(omega_par[indx_vals[i][0][0]])
+
+
+    plt.ion()
+    plt.imshow(vals.T, interpolation='nearest', origin="lower", extent=(theta_par.min(), theta_par.max(), omega_par.min(), omega_par.max()),aspect='auto')
+
+    plt.plot(theta_par, omegapar_max_vals, 'k', linewidth=2)
+    plt.xlabel(r"$\theta_{||}$",fontsize=20)
+    plt.ylabel(r"$\Omega_{||}$", fontsize=20)
 
 
 def gausstimesvalue(params,vals,nologsum=False):
@@ -522,12 +679,14 @@ def plot_gauss(values):
     """
     Parameter:
     -------------------------------------------------------
+        values: values obtained from fig4 function
         
         
         
     Returns:
     -------------------------------------------------------
-    
+        Plots the Gaussian and best-fit curves similar to
+        fig 4in bovy 2014 of the frequencies
     """
 
     import matplotlib.mlab as mlab
